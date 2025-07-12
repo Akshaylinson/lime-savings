@@ -5,32 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Lime Finance | Personal Finance Dashboard</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
     tailwind.config = {
       theme: {
-        fontFamily: {
-          sans: ['Fredoka', 'sans-serif'],
-        },
         extend: {
           colors: {
-            lime: {
-              50: '#f0ffe0',
-              100: '#d8ffb3',
-              200: '#c0ff80',
-              300: '#a8ff4d',
-              400: '#90ff1a',
-              500: '#77e600',
-              600: '#5fb300',
-              700: '#478000',
-              800: '#2f4d00',
-              900: '#171a00',
-            },
-            black: {
-              900: '#000000',
-            }
+            lime: '#00FF00',
+            black: '#000000',
+            white: '#FFFFFF'
           }
         }
       }
@@ -38,49 +23,42 @@
   </script>
   <style>
     body {
-      background-color: #f8fff0;
+      font-family: 'Inter', sans-serif;
+      background-color: white;
     }
     
     .tab-btn.active {
-      background-color: #00FF00;
-      color: #000000;
+      background-color: black;
+      color: #00FF00;
       border-bottom: 3px solid #00FF00;
     }
     
     .card-shadow {
-      box-shadow: 0 4px 20px -5px rgba(0, 255, 0, 0.2);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     }
     
     .progress-bar {
-      height: 12px;
-      border-radius: 6px;
-      background-color: #e0ffe0;
+      height: 8px;
+      border-radius: 4px;
+      background-color: #f0f0f0;
       overflow: hidden;
     }
     
     .progress-fill {
       height: 100%;
-      border-radius: 6px;
+      border-radius: 4px;
       transition: width 0.5s ease;
     }
     
     .saving-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 10px 25px -5px rgba(0, 255, 0, 0.3);
+      transform: translateY(-2px);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
     }
     
     .chart-container {
       position: relative;
       height: 200px;
       width: 100%;
-    }
-    
-    .header-bg {
-      background: linear-gradient(135deg, #000000 0%, #003300 100%);
-    }
-    
-    .bubble-text {
-      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
     }
     
     .leaf-icon {
@@ -98,45 +76,29 @@
       clip-path: polygon(0 0, 100% 0, 50% 100%);
       transform: rotate(-15deg);
     }
-    
-    @media (min-width: 768px) {
-      .chart-container {
-        height: 220px;
-      }
-    }
-    
-    @media (max-width: 640px) {
-      .summary-card {
-        min-width: 100%;
-      }
-    }
   </style>
 </head>
-<body class="bg-lime-50">
+<body class="bg-white">
   <div class="min-h-screen">
     <!-- Header -->
-    <header class="header-bg text-white shadow-lg">
+    <header class="bg-black text-white shadow-md">
       <div class="container mx-auto px-4 py-6">
         <div class="flex justify-between items-center">
           <div class="flex items-center space-x-3">
-            <div class="bg-lime-500/30 p-2 rounded-xl">
-              <div class="leaf-icon text-3xl text-lime-400">L</div>
+            <div class="p-2 rounded-lg">
+              <div class="leaf-icon text-3xl text-lime">L</div>
             </div>
-            <h1 class="text-3xl font-bold bubble-text">
-              <span class="text-lime-400">Lime</span> 
-              <span class="text-white">Finance</span>
-              <span class="text-xs block font-normal text-gray-300">estd 2027</span>
-            </h1>
+            <h1 class="text-2xl font-bold">Lime Finance</h1>
           </div>
           <div class="hidden md:flex items-center space-x-4">
-            <button class="px-4 py-2 rounded-xl bg-lime-500/20 hover:bg-lime-500/30 transition text-lime-300">
+            <button class="px-3 py-1.5 rounded-md bg-black text-lime border border-lime hover:bg-gray-900 transition">
               <i class="fas fa-bell mr-2"></i>Alerts
             </button>
-            <div class="w-10 h-10 rounded-full bg-lime-500/20 flex items-center justify-center text-lime-300">
+            <div class="w-10 h-10 rounded-full bg-black border border-lime flex items-center justify-center text-lime">
               <i class="fas fa-user"></i>
             </div>
           </div>
-          <button class="md:hidden text-xl text-lime-300">
+          <button class="md:hidden text-xl text-lime">
             <i class="fas fa-bars"></i>
           </button>
         </div>
@@ -145,9 +107,9 @@
 
     <!-- Main Content -->
     <main class="container mx-auto px-4 py-8">
-      <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-lime-200">
+      <div class="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200">
         <!-- Tabs Navigation -->
-        <div class="border-b border-lime-200">
+        <div class="border-b border-gray-200">
           <nav class="flex overflow-x-auto">
             <button onclick="showTab('expenseTab')" class="tab-btn active px-6 py-4 font-medium text-sm md:text-base whitespace-nowrap focus:outline-none">
               <i class="fas fa-wallet mr-2"></i>Income & Expenses
@@ -170,58 +132,58 @@
           <div id="expenseTab" class="tab-content">
             <!-- Summary Cards -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              <div class="bg-gradient-to-r from-lime-100 to-lime-200 border-2 border-lime-300 rounded-2xl p-6 card-shadow">
+              <div class="bg-white border border-gray-200 rounded-xl p-6 card-shadow">
                 <div class="flex items-center justify-between">
                   <div>
-                    <p class="text-sm font-medium text-lime-800">Total Income</p>
-                    <h3 class="text-2xl font-bold text-black-900 mt-1">₹<span id="totalIncome">0</span></h3>
-                    <p class="text-xs text-lime-700 mt-2"><i class="fas fa-arrow-up mr-1"></i> 12% from last month</p>
+                    <p class="text-sm font-medium text-gray-700">Total Income</p>
+                    <h3 class="text-2xl font-bold text-black mt-1">₹<span id="totalIncome">0</span></h3>
+                    <p class="text-xs text-lime mt-2"><i class="fas fa-arrow-up mr-1"></i> 12% from last month</p>
                   </div>
-                  <div class="bg-lime-300 p-3 rounded-xl">
-                    <i class="fas fa-arrow-down-to-line text-lime-800 text-xl"></i>
+                  <div class="p-3 rounded-lg border border-lime">
+                    <i class="fas fa-arrow-down-to-line text-lime text-xl"></i>
                   </div>
                 </div>
               </div>
               
-              <div class="bg-gradient-to-r from-red-100 to-red-200 border-2 border-red-300 rounded-2xl p-6 card-shadow">
+              <div class="bg-white border border-gray-200 rounded-xl p-6 card-shadow">
                 <div class="flex items-center justify-between">
                   <div>
-                    <p class="text-sm font-medium text-red-800">Total Expenses</p>
-                    <h3 class="text-2xl font-bold text-black-900 mt-1">₹<span id="totalExpense">0</span></h3>
-                    <p class="text-xs text-red-700 mt-2"><i class="fas fa-arrow-up mr-1"></i> 8% from last month</p>
+                    <p class="text-sm font-medium text-gray-700">Total Expenses</p>
+                    <h3 class="text-2xl font-bold text-black mt-1">₹<span id="totalExpense">0</span></h3>
+                    <p class="text-xs text-lime mt-2"><i class="fas fa-arrow-up mr-1"></i> 8% from last month</p>
                   </div>
-                  <div class="bg-red-300 p-3 rounded-xl">
-                    <i class="fas fa-arrow-up-from-line text-red-800 text-xl"></i>
+                  <div class="p-3 rounded-lg border border-lime">
+                    <i class="fas fa-arrow-up-from-line text-lime text-xl"></i>
                   </div>
                 </div>
               </div>
               
-              <div class="bg-gradient-to-r from-black to-gray-800 border-2 border-gray-700 rounded-2xl p-6 card-shadow">
+              <div class="bg-black text-white rounded-xl p-6 card-shadow border border-lime">
                 <div class="flex items-center justify-between">
                   <div>
-                    <p class="text-sm font-medium text-lime-300">Current Balance</p>
-                    <h3 class="text-2xl font-bold text-white mt-1">₹<span id="balance">0</span></h3>
-                    <p class="text-xs text-lime-300 mt-2"><i class="fas fa-info-circle mr-1"></i> Updated just now</p>
+                    <p class="text-sm font-medium text-lime">Current Balance</p>
+                    <h3 class="text-2xl font-bold text-white mt-1">₹<span id="balance">20,000.00</span></h3>
+                    <p class="text-xs text-lime mt-2"><i class="fas fa-info-circle mr-1"></i> Updated just now</p>
                   </div>
-                  <div class="bg-gray-700 p-3 rounded-xl">
-                    <i class="fas fa-scale-balanced text-lime-300 text-xl"></i>
+                  <div class="p-3 rounded-lg border border-lime">
+                    <i class="fas fa-scale-balanced text-lime text-xl"></i>
                   </div>
                 </div>
               </div>
             </div>
 
             <!-- Add Transaction Form -->
-            <div class="bg-lime-50 rounded-2xl p-6 mb-8 card-shadow border-2 border-lime-200">
-              <h2 class="text-lg font-semibold text-black-900 mb-4">Add New Transaction</h2>
+            <div class="bg-white rounded-xl p-6 mb-8 card-shadow border border-gray-200">
+              <h2 class="text-lg font-semibold text-black mb-4">Add New Transaction</h2>
               <form id="entryForm" class="grid grid-cols-1 md:grid-cols-5 gap-4">
                 <div>
                   <label for="date" class="block text-sm font-medium text-gray-700 mb-1">Date</label>
-                  <input type="date" id="date" required class="w-full px-4 py-2 border-2 border-lime-300 rounded-xl focus:ring-2 focus:ring-lime-500 focus:border-lime-500">
+                  <input type="date" id="date" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lime focus:border-lime">
                 </div>
                 
                 <div>
                   <label for="type" class="block text-sm font-medium text-gray-700 mb-1">Type</label>
-                  <select id="type" required class="w-full px-4 py-2 border-2 border-lime-300 rounded-xl focus:ring-2 focus:ring-lime-500 focus:border-lime-500">
+                  <select id="type" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lime focus:border-lime">
                     <option value="income">Income</option>
                     <option value="expense">Expense</option>
                   </select>
@@ -229,16 +191,16 @@
                 
                 <div>
                   <label for="amount" class="block text-sm font-medium text-gray-700 mb-1">Amount (₹)</label>
-                  <input type="number" id="amount" placeholder="0.00" required class="w-full px-4 py-2 border-2 border-lime-300 rounded-xl focus:ring-2 focus:ring-lime-500 focus:border-lime-500">
+                  <input type="number" id="amount" placeholder="0.00" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lime focus:border-lime">
                 </div>
                 
                 <div>
                   <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                  <input type="text" id="description" placeholder="e.g. Salary, Rent" required class="w-full px-4 py-2 border-2 border-lime-300 rounded-xl focus:ring-2 focus:ring-lime-500 focus:border-lime-500">
+                  <input type="text" id="description" placeholder="e.g. Salary, Rent" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lime focus:border-lime">
                 </div>
                 
                 <div class="flex items-end">
-                  <button type="submit" class="w-full bg-black hover:bg-gray-800 text-lime-400 py-2 px-4 rounded-xl transition flex items-center justify-center font-bold">
+                  <button type="submit" class="w-full bg-black hover:bg-gray-900 text-lime py-2 px-4 rounded-lg transition flex items-center justify-center">
                     <i class="fas fa-plus mr-2"></i> Add
                   </button>
                 </div>
@@ -248,44 +210,44 @@
             <!-- Transactions Table -->
             <div class="mb-8">
               <div class="flex justify-between items-center mb-4">
-                <h2 class="text-lg font-semibold text-black-900">Recent Transactions</h2>
+                <h2 class="text-lg font-semibold text-black">Recent Transactions</h2>
                 <div class="flex space-x-2">
-                  <button class="px-3 py-1.5 text-sm bg-lime-100 hover:bg-lime-200 rounded-lg transition border-2 border-lime-200">
+                  <button class="px-3 py-1.5 text-sm bg-white border border-gray-200 hover:bg-gray-50 rounded-lg transition">
                     <i class="fas fa-filter mr-1"></i> Filter
                   </button>
-                  <button class="px-3 py-1.5 text-sm bg-lime-100 hover:bg-lime-200 rounded-lg transition border-2 border-lime-200">
+                  <button class="px-3 py-1.5 text-sm bg-white border border-gray-200 hover:bg-gray-50 rounded-lg transition">
                     <i class="fas fa-download mr-1"></i> Export
                   </button>
                 </div>
               </div>
               
-              <div class="overflow-x-auto rounded-xl border-2 border-lime-200">
-                <table class="min-w-full divide-y divide-lime-200">
-                  <thead class="bg-lime-100">
+              <div class="overflow-x-auto rounded-lg border border-gray-200">
+                <table class="min-w-full divide-y divide-gray-200">
+                  <thead class="bg-gray-50">
                     <tr>
-                      <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-lime-800 uppercase tracking-wider">Date</th>
-                      <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-lime-800 uppercase tracking-wider">Type</th>
-                      <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-lime-800 uppercase tracking-wider">Description</th>
-                      <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-lime-800 uppercase tracking-wider">Amount</th>
-                      <th scope="col" class="px-6 py-3 text-right text-xs font-bold text-lime-800 uppercase tracking-wider">Actions</th>
+                      <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Date</th>
+                      <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Type</th>
+                      <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Description</th>
+                      <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Amount</th>
+                      <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">Actions</th>
                     </tr>
                   </thead>
-                  <tbody id="recordsTable" class="bg-white divide-y divide-lime-100"></tbody>
+                  <tbody id="recordsTable" class="bg-white divide-y divide-gray-200"></tbody>
                 </table>
               </div>
             </div>
 
             <!-- Charts -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div class="bg-white p-4 rounded-2xl border-2 border-lime-200 card-shadow">
-                <h3 class="text-lg font-semibold text-black-900 mb-2">Monthly Income & Expenses</h3>
+              <div class="bg-white p-4 rounded-xl border border-gray-200 card-shadow">
+                <h3 class="text-lg font-semibold text-black mb-2">Monthly Income & Expenses</h3>
                 <div class="chart-container">
                   <canvas id="incomeExpenseChart"></canvas>
                 </div>
               </div>
               
-              <div class="bg-white p-4 rounded-2xl border-2 border-lime-200 card-shadow">
-                <h3 class="text-lg font-semibold text-black-900 mb-2">Spending by Category</h3>
+              <div class="bg-white p-4 rounded-xl border border-gray-200 card-shadow">
+                <h3 class="text-lg font-semibold text-black mb-2">Spending by Category</h3>
                 <div class="chart-container">
                   <p class="text-gray-500 text-center mt-16">Category data will appear in Savings tab</p>
                 </div>
@@ -296,17 +258,17 @@
           <!-- Savings Tab -->
           <div id="savingsTab" class="tab-content hidden">
             <!-- Savings Form -->
-            <div class="bg-lime-50 rounded-2xl p-6 mb-8 card-shadow border-2 border-lime-200">
-              <h2 class="text-lg font-semibold text-black-900 mb-4">Track Savings Goal</h2>
+            <div class="bg-white rounded-xl p-6 mb-8 card-shadow border border-gray-200">
+              <h2 class="text-lg font-semibold text-black mb-4">Track Savings Goal</h2>
               <form id="savingsForm" class="grid grid-cols-1 md:grid-cols-6 gap-4">
                 <div>
                   <label for="sDate" class="block text-sm font-medium text-gray-700 mb-1">Date</label>
-                  <input type="date" id="sDate" required class="w-full px-4 py-2 border-2 border-lime-300 rounded-xl focus:ring-2 focus:ring-lime-500 focus:border-lime-500">
+                  <input type="date" id="sDate" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lime focus:border-lime">
                 </div>
                 
                 <div>
                   <label for="sType" class="block text-sm font-medium text-gray-700 mb-1">Type</label>
-                  <select id="sType" required class="w-full px-4 py-2 border-2 border-lime-300 rounded-xl focus:ring-2 focus:ring-lime-500 focus:border-lime-500">
+                  <select id="sType" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lime focus:border-lime">
                     <option value="income">Income</option>
                     <option value="expense">Expense</option>
                   </select>
@@ -314,21 +276,21 @@
                 
                 <div>
                   <label for="sAmount" class="block text-sm font-medium text-gray-700 mb-1">Amount (₹)</label>
-                  <input type="number" id="sAmount" placeholder="0.00" required class="w-full px-4 py-2 border-2 border-lime-300 rounded-xl focus:ring-2 focus:ring-lime-500 focus:border-lime-500">
+                  <input type="number" id="sAmount" placeholder="0.00" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lime focus:border-lime">
                 </div>
                 
                 <div>
                   <label for="sDesc" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                  <input type="text" id="sDesc" placeholder="e.g. Bonus, Shopping" required class="w-full px-4 py-2 border-2 border-lime-300 rounded-xl focus:ring-2 focus:ring-lime-500 focus:border-lime-500">
+                  <input type="text" id="sDesc" placeholder="e.g. Bonus, Shopping" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lime focus:border-lime">
                 </div>
                 
                 <div>
                   <label for="sCategory" class="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                  <select id="sCategory" required class="w-full px-4 py-2 border-2 border-lime-300 rounded-xl focus:ring-2 focus:ring-lime-500 focus:border-lime-500"></select>
+                  <select id="sCategory" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lime focus:border-lime"></select>
                 </div>
                 
                 <div class="flex items-end">
-                  <button type="submit" class="w-full bg-black hover:bg-gray-800 text-lime-400 py-2 px-4 rounded-xl transition flex items-center justify-center font-bold">
+                  <button type="submit" class="w-full bg-black hover:bg-gray-900 text-lime py-2 px-4 rounded-lg transition flex items-center justify-center">
                     <i class="fas fa-save mr-2"></i> Save
                   </button>
                 </div>
@@ -336,48 +298,48 @@
             </div>
 
             <!-- Category Management -->
-            <div class="bg-white rounded-2xl border-2 border-lime-200 p-6 mb-8 card-shadow">
+            <div class="bg-white rounded-xl border border-gray-200 p-6 mb-8 card-shadow">
               <div class="flex justify-between items-center mb-4">
-                <h2 class="text-lg font-semibold text-black-900">Savings Categories</h2>
-                <button id="settingsBtn" class="px-4 py-2 bg-black hover:bg-gray-800 text-lime-400 rounded-xl transition flex items-center font-bold">
+                <h2 class="text-lg font-semibold text-black">Savings Categories</h2>
+                <button id="settingsBtn" class="px-4 py-2 bg-black hover:bg-gray-900 text-lime rounded-lg transition flex items-center">
                   <i class="fas fa-cog mr-2"></i> Manage Categories
                 </button>
               </div>
               
-              <div id="settingsPanel" class="hidden border-t border-lime-200 pt-6 mt-6">
-                <h3 class="text-md font-medium text-black-900 mb-4">Add New Category</h3>
+              <div id="settingsPanel" class="hidden border-t pt-6 mt-6">
+                <h3 class="text-md font-medium text-black mb-4">Add New Category</h3>
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                   <div>
                     <label for="newCategory" class="block text-sm font-medium text-gray-700 mb-1">Category Name</label>
-                    <input type="text" id="newCategory" placeholder="e.g. Vacation, Car" class="w-full px-4 py-2 border-2 border-lime-300 rounded-xl focus:ring-2 focus:ring-lime-500 focus:border-lime-500">
+                    <input type="text" id="newCategory" placeholder="e.g. Vacation, Car" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lime focus:border-lime">
                   </div>
                   
                   <div>
                     <label for="targetAmount" class="block text-sm font-medium text-gray-700 mb-1">Target Amount (₹)</label>
-                    <input type="number" id="targetAmount" placeholder="0.00" class="w-full px-4 py-2 border-2 border-lime-300 rounded-xl focus:ring-2 focus:ring-lime-500 focus:border-lime-500">
+                    <input type="number" id="targetAmount" placeholder="0.00" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lime focus:border-lime">
                   </div>
                   
                   <div class="flex items-end">
-                    <button onclick="addCategory()" type="button" class="w-full bg-black hover:bg-gray-800 text-lime-400 py-2 px-4 rounded-xl transition flex items-center justify-center font-bold">
+                    <button onclick="addCategory()" type="button" class="w-full bg-black hover:bg-gray-900 text-lime py-2 px-4 rounded-lg transition flex items-center justify-center">
                       <i class="fas fa-plus mr-2"></i> Add Category
                     </button>
                   </div>
                 </div>
                 
-                <h3 class="text-md font-medium text-black-900 mb-4">Existing Categories</h3>
+                <h3 class="text-md font-medium text-black mb-4">Existing Categories</h3>
                 <div id="categoryList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
               </div>
             </div>
 
             <!-- Savings Goals -->
             <div class="mb-8">
-              <h2 class="text-lg font-semibold text-black-900 mb-4">Your Savings Progress</h2>
+              <h2 class="text-lg font-semibold text-black mb-4">Your Savings Progress</h2>
               <div id="savingsList" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
             </div>
 
             <!-- Savings Chart -->
-            <div class="bg-white p-4 rounded-2xl border-2 border-lime-200 card-shadow">
-              <h3 class="text-lg font-semibold text-black-900 mb-2">Category-wise Savings Progress</h3>
+            <div class="bg-white p-4 rounded-xl border border-gray-200 card-shadow">
+              <h3 class="text-lg font-semibold text-black mb-2">Category-wise Savings Progress</h3>
               <div class="chart-container">
                 <canvas id="categoryChart"></canvas>
               </div>
@@ -393,22 +355,19 @@
         <div class="flex flex-col md:flex-row justify-between items-center">
           <div class="mb-4 md:mb-0">
             <div class="flex items-center space-x-2">
-              <div class="leaf-icon text-2xl text-lime-400">L</div>
-              <span class="text-xl font-bold bubble-text">
-                <span class="text-lime-400">Lime</span>
-                <span class="text-white">Finance</span>
-              </span>
+              <div class="leaf-icon text-2xl text-lime">L</div>
+              <span class="text-xl font-bold">Lime Finance</span>
             </div>
-            <p class="text-lime-300 mt-2">Your personal finance companion</p>
+            <p class="text-lime mt-2">Your personal finance companion</p>
           </div>
           <div class="flex space-x-6">
-            <a href="#" class="text-lime-300 hover:text-white transition">Privacy</a>
-            <a href="#" class="text-lime-300 hover:text-white transition">Terms</a>
-            <a href="#" class="text-lime-300 hover:text-white transition">Contact</a>
+            <a href="#" class="text-white hover:text-lime transition">Privacy</a>
+            <a href="#" class="text-white hover:text-lime transition">Terms</a>
+            <a href="#" class="text-white hover:text-lime transition">Contact</a>
           </div>
         </div>
-        <div class="border-t border-lime-800 mt-6 pt-6 text-center text-lime-300 text-sm">
-          © 2027 Lime Finance. All rights reserved.
+        <div class="border-t border-gray-700 mt-6 pt-6 text-center text-lime text-sm">
+          © 2023 Lime Finance. All rights reserved.
         </div>
       </div>
     </footer>
@@ -427,10 +386,10 @@
     }
 
     // ---------- Chart Configuration ----------
-    Chart.defaults.font.family = 'Fredoka, sans-serif';
+    Chart.defaults.font.family = 'Inter, sans-serif';
     Chart.defaults.font.weight = 'bold';
     Chart.defaults.color = '#000000';
-    Chart.defaults.borderColor = '#d1f7b9';
+    Chart.defaults.borderColor = '#e5e7eb';
 
     // ---------- Income/Expense Section ----------
     let records = JSON.parse(localStorage.getItem("records")) || [];
@@ -447,20 +406,20 @@
       
       records.sort((a, b) => new Date(b.date) - new Date(a.date)).forEach((rec, index) => {
         const row = document.createElement("tr");
-        row.className = "hover:bg-lime-50";
+        row.className = "hover:bg-gray-50";
         row.innerHTML = `
           <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${rec.date}</td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm ${rec.type === 'income' ? 'text-lime-600' : 'text-red-600'}">
-            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${rec.type === 'income' ? 'bg-lime-100 text-lime-800' : 'bg-red-100 text-red-800'}">
+          <td class="px-6 py-4 whitespace-nowrap text-sm ${rec.type === 'income' ? 'text-lime' : 'text-lime'}">
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${rec.type === 'income' ? 'bg-lime text-black' : 'bg-lime text-black'}">
               ${rec.type === 'income' ? 'Income' : 'Expense'}
             </span>
           </td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${rec.description}</td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm ${rec.type === 'income' ? 'text-lime-600 font-bold' : 'text-red-600 font-bold'}">
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${rec.description}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm ${rec.type === 'income' ? 'text-lime font-medium' : 'text-lime font-medium'}">
             ${rec.type === 'income' ? '+' : '-'}₹${rec.amount.toFixed(2)}
           </td>
           <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-            <button onclick="deleteRecord(${index})" class="text-red-500 hover:text-red-700 transition">
+            <button onclick="deleteRecord(${index})" class="text-lime hover:text-black transition">
               <i class="fas fa-trash-alt"></i>
             </button>
           </td>`;
@@ -490,24 +449,24 @@
             { 
               label: 'Income', 
               data: incomeData, 
-              borderColor: '#00cc66',
-              backgroundColor: '#00cc66',
-              tension: 0.4,
-              borderWidth: 3,
-              pointBackgroundColor: '#00cc66',
-              pointRadius: 5,
-              pointHoverRadius: 7
+              borderColor: '#00FF00',
+              backgroundColor: '#00FF00',
+              tension: 0.3,
+              borderWidth: 2,
+              pointBackgroundColor: '#00FF00',
+              pointRadius: 4,
+              pointHoverRadius: 6
             },
             { 
               label: 'Expense', 
               data: expenseData, 
-              borderColor: '#ff3333',
-              backgroundColor: '#ff3333',
-              tension: 0.4,
-              borderWidth: 3,
-              pointBackgroundColor: '#ff3333',
-              pointRadius: 5,
-              pointHoverRadius: 7
+              borderColor: '#000000',
+              backgroundColor: '#000000',
+              tension: 0.3,
+              borderWidth: 2,
+              pointBackgroundColor: '#000000',
+              pointRadius: 4,
+              pointHoverRadius: 6
             }
           ]
         },
@@ -591,26 +550,26 @@
         const percent = Math.min(safeTotal / cat.target, 1);
         const percentDisplay = Math.round(percent * 100);
         
-        const statusColor = percent >= 1 ? 'bg-lime-500' : percent >= 0.7 ? 'bg-yellow-500' : 'bg-red-500';
+        const statusColor = percent >= 1 ? 'bg-lime' : percent >= 0.7 ? 'bg-gray-300' : 'bg-gray-300';
         const statusText = percent >= 1 ? 'Achieved!' : percent >= 0.7 ? 'Good progress' : 'Needs attention';
-        const statusIcon = percent >= 1 ? 'fas fa-check-circle text-lime-500' : 
-                          percent >= 0.7 ? 'fas fa-hourglass-half text-yellow-500' : 'fas fa-exclamation-circle text-red-500';
+        const statusIcon = percent >= 1 ? 'fas fa-check-circle text-lime' : 
+                          percent >= 0.7 ? 'fas fa-hourglass-half text-gray-500' : 'fas fa-exclamation-circle text-gray-500';
         
         const card = document.createElement("div");
-        card.className = "bg-white border-2 border-lime-200 rounded-2xl p-6 transition-all duration-200 saving-card card-shadow";
+        card.className = "bg-white border border-gray-200 rounded-xl p-6 transition-all duration-200 saving-card card-shadow";
         card.innerHTML = `
           <div class="flex justify-between items-start mb-3">
-            <h3 class="text-lg font-semibold text-black-900">${cat.name}</h3>
+            <h3 class="text-lg font-semibold text-black">${cat.name}</h3>
             <div class="flex items-center space-x-2">
               <i class="${statusIcon}"></i>
-              <span class="text-sm font-bold ${percent >= 1 ? 'text-lime-600' : percent >= 0.7 ? 'text-yellow-600' : 'text-red-600'}">${statusText}</span>
+              <span class="text-sm font-medium ${percent >= 1 ? 'text-lime' : percent >= 0.7 ? 'text-gray-700' : 'text-gray-700'}">${statusText}</span>
             </div>
           </div>
           
           <div class="mb-4">
             <div class="flex justify-between items-center mb-1">
-              <span class="text-sm font-medium text-lime-800">Progress (${percentDisplay}%)</span>
-              <span class="text-sm font-bold ${percent >= 1 ? 'text-lime-600' : percent >= 0.7 ? 'text-yellow-600' : 'text-red-600'}">
+              <span class="text-sm font-medium text-gray-600">Progress (${percentDisplay}%)</span>
+              <span class="text-sm font-medium ${percent >= 1 ? 'text-lime' : percent >= 0.7 ? 'text-gray-700' : 'text-gray-700'}">
                 ₹${safeTotal.toFixed(2)} / ₹${cat.target.toFixed(2)}
               </span>
             </div>
@@ -619,16 +578,16 @@
             </div>
           </div>
           
-          <div class="space-y-2 text-sm text-gray-700">
+          <div class="space-y-2 text-sm text-gray-600">
             ${savings.filter(e => e.category === cat.name).map((entry, i) => `
-              <div class="flex justify-between items-center py-2 border-b border-lime-100 last:border-0">
+              <div class="flex justify-between items-center py-2 border-b border-gray-100 last:border-0">
                 <div>
                   <span class="font-medium">${entry.date}</span> - ${entry.description}
-                  <span class="${entry.type === 'income' ? 'text-lime-600' : 'text-red-600'} ml-2">
+                  <span class="${entry.type === 'income' ? 'text-lime' : 'text-lime'} ml-2">
                     ${entry.type === 'income' ? '+' : '-'}₹${entry.amount.toFixed(2)}
                   </span>
                 </div>
-                <button onclick="deleteSaving(${i})" class="text-red-500 hover:text-red-700 transition">
+                <button onclick="deleteSaving(${i})" class="text-lime hover:text-black transition">
                   <i class="fas fa-times"></i>
                 </button>
               </div>
@@ -644,17 +603,16 @@
       const allMonths = [...new Set(savings.map(s => new Date(s.date).toLocaleString('default', { year: 'numeric', month: 'short' })))].sort((a, b) => new Date(a) - new Date(b));
       
       const datasets = categories.map((cat, i) => {
-        const hue = (i * 60) % 360;
         return {
           label: cat.name,
           data: allMonths.map(m => groupedData[cat.name]?.[m] || 0),
-          borderColor: `hsl(${hue}, 80%, 50%)`,
-          backgroundColor: `hsl(${hue}, 80%, 50%, 0.2)`,
-          tension: 0.4,
-          borderWidth: 3,
-          pointBackgroundColor: `hsl(${hue}, 80%, 50%)`,
-          pointRadius: 5,
-          pointHoverRadius: 7,
+          borderColor: '#00FF00',
+          backgroundColor: '#00FF00',
+          tension: 0.3,
+          borderWidth: 2,
+          pointBackgroundColor: '#00FF00',
+          pointRadius: 4,
+          pointHoverRadius: 6,
           fill: true
         };
       });
@@ -711,13 +669,13 @@
       categoryList.innerHTML = '';
       categories.forEach((cat, i) => {
         const row = document.createElement("div");
-        row.className = "bg-lime-50 rounded-xl p-4 flex justify-between items-center border-2 border-lime-200";
+        row.className = "bg-white rounded-lg p-4 flex justify-between items-center border border-gray-200";
         row.innerHTML = `
           <div>
-            <h4 class="font-bold text-black-900">${cat.name}</h4>
-            <p class="text-sm text-lime-700">Target: ₹${cat.target.toFixed(2)}</p>
+            <h4 class="font-medium text-black">${cat.name}</h4>
+            <p class="text-sm text-gray-600">Target: ₹${cat.target.toFixed(2)}</p>
           </div>
-          <button onclick="deleteCategory(${i})" class="text-red-500 hover:text-red-700 transition p-2">
+          <button onclick="deleteCategory(${i})" class="text-lime hover:text-black transition p-2">
             <i class="fas fa-trash-alt"></i>
           </button>`;
         categoryList.appendChild(row);
@@ -761,8 +719,7 @@
               boxWidth: 12,
               padding: 10,
               font: {
-                size: 12,
-                weight: 'bold'
+                size: 12
               }
             }
           },
@@ -771,12 +728,6 @@
               label: function(context) {
                 return context.dataset.label + ': ₹' + context.raw.toFixed(2);
               }
-            },
-            titleFont: {
-              weight: 'bold'
-            },
-            bodyFont: {
-              weight: 'bold'
             }
           }
         },
@@ -788,8 +739,7 @@
                 return '₹' + value;
               },
               font: {
-                size: 11,
-                weight: 'bold'
+                size: 11
               }
             },
             grid: {
@@ -802,8 +752,7 @@
             },
             ticks: {
               font: {
-                size: 11,
-                weight: 'bold'
+                size: 11
               }
             }
           }
@@ -819,8 +768,8 @@
     // Notification function
     function showNotification(message, type) {
       const notification = document.createElement('div');
-      notification.className = `fixed top-4 right-4 px-6 py-3 rounded-xl shadow-xl text-white font-bold ${
-        type === 'success' ? 'bg-lime-500' : 'bg-red-500'
+      notification.className = `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg text-white font-medium ${
+        type === 'success' ? 'bg-lime' : 'bg-black'
       } transition transform duration-300 translate-x-0 opacity-100`;
       notification.textContent = message;
       document.body.appendChild(notification);
