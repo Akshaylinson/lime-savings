@@ -3,101 +3,391 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Finance Dashboard</title>
+  <title>Lime Finance | Personal Finance Dashboard</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: {
+              50: '#f0f9ff',
+              100: '#e0f2fe',
+              200: '#bae6fd',
+              300: '#7dd3fc',
+              400: '#38bdf8',
+              500: '#0ea5e9',
+              600: '#0284c7',
+              700: '#0369a1',
+              800: '#075985',
+              900: '#0c4a6e',
+            },
+            lime: {
+              50: '#f7fee7',
+              100: '#ecfccb',
+              200: '#d9f99d',
+              300: '#bef264',
+              400: '#a3e635',
+              500: '#84cc16',
+              600: '#65a30d',
+              700: '#4d7c0f',
+              800: '#3f6212',
+              900: '#365314',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f8fafc;
+    }
+    
+    .tab-btn.active {
+      background-color: #0ea5e9;
+      color: white;
+    }
+    
+    .card-shadow {
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
+    }
+    
+    .progress-bar {
+      height: 8px;
+      border-radius: 4px;
+      background-color: #e2e8f0;
+      overflow: hidden;
+    }
+    
+    .progress-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.5s ease;
+    }
+    
+    .saving-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
+    }
+    
+    @media (max-width: 640px) {
+      .summary-card {
+        min-width: 100%;
+      }
+    }
+  </style>
 </head>
-<body class="bg-gray-100 p-4">
-
-  <div class="w-full max-w-screen-lg mx-auto bg-white p-4 sm:p-6 rounded-xl shadow-md">
-    <h1 class="text-2xl sm:text-3xl font-bold text-center mb-6 text-gray-800">💼 Lime-Finance</h1>
-
-    <!-- Tabs -->
-    <div class="flex flex-wrap justify-center mb-6 gap-2">
-      <button onclick="showTab('expenseTab')" class="tab-btn bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Income & Expenses</button>
-      <button onclick="showTab('savingsTab')" class="tab-btn bg-gray-200 text-gray-700 px-4 py-2 rounded hover:bg-blue-200">Savings</button>
-    </div>
-
-    <!-- Income/Expense Tab -->
-    <div id="expenseTab" class="tab-content">
-      <div class="flex flex-wrap gap-4 justify-between mb-6">
-        <div class="w-full sm:flex-1 bg-green-500 text-white p-4 sm:p-6 rounded-lg text-center font-semibold text-lg">Income: ₹<span id="totalIncome">0</span></div>
-        <div class="w-full sm:flex-1 bg-red-500 text-white p-4 sm:p-6 rounded-lg text-center font-semibold text-lg">Expense: ₹<span id="totalExpense">0</span></div>
-        <div class="w-full sm:flex-1 bg-blue-500 text-white p-4 sm:p-6 rounded-lg text-center font-semibold text-lg">Balance: ₹<span id="balance">0</span></div>
-      </div>
-
-      <form id="entryForm" class="flex flex-wrap gap-4 mb-6">
-        <input type="date" id="date" required class="w-full sm:flex-1 px-4 py-2 border rounded-md">
-        <select id="type" required class="w-full sm:flex-1 px-4 py-2 border rounded-md">
-          <option value="income">Income</option>
-          <option value="expense">Expense</option>
-        </select>
-        <input type="number" id="amount" placeholder="Amount (₹)" required class="w-full sm:flex-1 px-4 py-2 border rounded-md">
-        <input type="text" id="description" placeholder="Description" required class="w-full sm:flex-1 px-4 py-2 border rounded-md">
-        <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700">Add Entry</button>
-      </form>
-
-      <div class="overflow-x-auto">
-        <table class="w-full border-collapse text-sm sm:text-base">
-          <thead class="bg-gray-200">
-            <tr>
-              <th class="px-4 py-2">Date</th>
-              <th class="px-4 py-2">Type</th>
-              <th class="px-4 py-2">Description</th>
-              <th class="px-4 py-2">Amount (₹)</th>
-              <th class="px-4 py-2">Action</th>
-            </tr>
-          </thead>
-          <tbody id="recordsTable" class="text-center"></tbody>
-        </table>
-      </div>
-
-      <div class="mt-10">
-        <h2 class="text-xl text-center font-semibold mb-4 text-gray-700">Monthly Income & Expense Overview</h2>
-        <canvas id="incomeExpenseChart" height="100"></canvas>
-      </div>
-    </div>
-
-    <!-- Savings Tab -->
-    <div id="savingsTab" class="tab-content hidden">
-      <form id="savingsForm" class="flex flex-wrap gap-4 mb-6">
-        <input type="date" id="sDate" required class="w-full sm:flex-1 px-4 py-2 border rounded-md">
-        <select id="sType" required class="w-full sm:flex-1 px-4 py-2 border rounded-md">
-          <option value="income">Income</option>
-          <option value="expense">Expense</option>
-        </select>
-        <input type="number" id="sAmount" placeholder="Amount" required class="w-full sm:flex-1 px-4 py-2 border rounded-md">
-        <input type="text" id="sDesc" placeholder="Description" required class="w-full sm:flex-1 px-4 py-2 border rounded-md">
-        <select id="sCategory" required class="w-full sm:flex-1 px-4 py-2 border rounded-md"></select>
-        <button type="submit" class="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700">Add Entry</button>
-      </form>
-
-      <div class="mb-6">
-        <button id="settingsBtn" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 mb-4">⚙️ Manage Categories</button>
-        <div id="settingsPanel" class="hidden border-t pt-4 mt-4">
-          <div class="flex flex-wrap gap-4 mb-4">
-            <input type="text" id="newCategory" placeholder="New Category" class="w-full sm:w-64 px-4 py-2 border rounded-md">
-            <input type="number" id="targetAmount" placeholder="Target ₹" class="w-full sm:w-64 px-4 py-2 border rounded-md">
-            <button onclick="addCategory()" type="button" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Add Category</button>
+<body class="bg-gray-50">
+  <div class="min-h-screen">
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-primary-600 to-primary-800 text-white shadow-md">
+      <div class="container mx-auto px-4 py-6">
+        <div class="flex justify-between items-center">
+          <div class="flex items-center space-x-3">
+            <div class="bg-white/20 p-2 rounded-lg">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-lime-300" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
+              </svg>
+            </div>
+            <h1 class="text-2xl font-bold">Lime Finance</h1>
           </div>
-          <div id="categoryList" class="space-y-2 text-gray-700 font-medium"></div>
+          <div class="hidden md:flex items-center space-x-4">
+            <button class="px-3 py-1.5 rounded-md bg-white/10 hover:bg-white/20 transition">
+              <i class="fas fa-bell mr-2"></i>Alerts
+            </button>
+            <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+              <i class="fas fa-user"></i>
+            </div>
+          </div>
+          <button class="md:hidden text-xl">
+            <i class="fas fa-bars"></i>
+          </button>
         </div>
       </div>
+    </header>
 
-      <div id="savingsList" class="space-y-4 mb-10"></div>
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8">
+      <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+        <!-- Tabs Navigation -->
+        <div class="border-b border-gray-200">
+          <nav class="flex overflow-x-auto">
+            <button onclick="showTab('expenseTab')" class="tab-btn active px-6 py-4 font-medium text-sm md:text-base whitespace-nowrap focus:outline-none">
+              <i class="fas fa-wallet mr-2"></i>Income & Expenses
+            </button>
+            <button onclick="showTab('savingsTab')" class="tab-btn px-6 py-4 font-medium text-sm md:text-base whitespace-nowrap focus:outline-none">
+              <i class="fas fa-piggy-bank mr-2"></i>Savings Goals
+            </button>
+            <button class="px-6 py-4 font-medium text-sm md:text-base whitespace-nowrap text-gray-500 cursor-not-allowed">
+              <i class="fas fa-chart-pie mr-2"></i>Reports
+            </button>
+            <button class="px-6 py-4 font-medium text-sm md:text-base whitespace-nowrap text-gray-500 cursor-not-allowed">
+              <i class="fas fa-cog mr-2"></i>Settings
+            </button>
+          </nav>
+        </div>
 
-      <div class="mt-10">
-        <h2 class="text-xl text-center font-semibold mb-4 text-gray-700">Category-wise Monthly Savings</h2>
-        <canvas id="categoryChart" height="100"></canvas>
+        <!-- Tab Contents -->
+        <div class="p-6">
+          <!-- Income/Expense Tab -->
+          <div id="expenseTab" class="tab-content">
+            <!-- Summary Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              <div class="bg-gradient-to-r from-green-50 to-green-100 border border-green-200 rounded-xl p-6 card-shadow">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <p class="text-sm font-medium text-green-600">Total Income</p>
+                    <h3 class="text-2xl font-bold text-gray-800 mt-1">₹<span id="totalIncome">0</span></h3>
+                    <p class="text-xs text-green-600 mt-2"><i class="fas fa-arrow-up mr-1"></i> 12% from last month</p>
+                  </div>
+                  <div class="bg-green-100 p-3 rounded-lg">
+                    <i class="fas fa-arrow-down-to-line text-green-600 text-xl"></i>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="bg-gradient-to-r from-red-50 to-red-100 border border-red-200 rounded-xl p-6 card-shadow">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <p class="text-sm font-medium text-red-600">Total Expenses</p>
+                    <h3 class="text-2xl font-bold text-gray-800 mt-1">₹<span id="totalExpense">0</span></h3>
+                    <p class="text-xs text-red-600 mt-2"><i class="fas fa-arrow-up mr-1"></i> 8% from last month</p>
+                  </div>
+                  <div class="bg-red-100 p-3 rounded-lg">
+                    <i class="fas fa-arrow-up-from-line text-red-600 text-xl"></i>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 rounded-xl p-6 card-shadow">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <p class="text-sm font-medium text-blue-600">Current Balance</p>
+                    <h3 class="text-2xl font-bold text-gray-800 mt-1">₹<span id="balance">0</span></h3>
+                    <p class="text-xs text-blue-600 mt-2"><i class="fas fa-info-circle mr-1"></i> Updated just now</p>
+                  </div>
+                  <div class="bg-blue-100 p-3 rounded-lg">
+                    <i class="fas fa-scale-balanced text-blue-600 text-xl"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Add Transaction Form -->
+            <div class="bg-gray-50 rounded-xl p-6 mb-8 card-shadow">
+              <h2 class="text-lg font-semibold text-gray-800 mb-4">Add New Transaction</h2>
+              <form id="entryForm" class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                <div>
+                  <label for="date" class="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                  <input type="date" id="date" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                </div>
+                
+                <div>
+                  <label for="type" class="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                  <select id="type" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                    <option value="income">Income</option>
+                    <option value="expense">Expense</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label for="amount" class="block text-sm font-medium text-gray-700 mb-1">Amount (₹)</label>
+                  <input type="number" id="amount" placeholder="0.00" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                </div>
+                
+                <div>
+                  <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                  <input type="text" id="description" placeholder="e.g. Salary, Rent" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                </div>
+                
+                <div class="flex items-end">
+                  <button type="submit" class="w-full bg-primary-600 hover:bg-primary-700 text-white py-2 px-4 rounded-lg transition flex items-center justify-center">
+                    <i class="fas fa-plus mr-2"></i> Add
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            <!-- Transactions Table -->
+            <div class="mb-8">
+              <div class="flex justify-between items-center mb-4">
+                <h2 class="text-lg font-semibold text-gray-800">Recent Transactions</h2>
+                <div class="flex space-x-2">
+                  <button class="px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg transition">
+                    <i class="fas fa-filter mr-1"></i> Filter
+                  </button>
+                  <button class="px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg transition">
+                    <i class="fas fa-download mr-1"></i> Export
+                  </button>
+                </div>
+              </div>
+              
+              <div class="overflow-x-auto rounded-lg border border-gray-200">
+                <table class="min-w-full divide-y divide-gray-200">
+                  <thead class="bg-gray-50">
+                    <tr>
+                      <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                      <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                      <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                      <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                      <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="recordsTable" class="bg-white divide-y divide-gray-200"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Charts -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div class="bg-white p-6 rounded-xl border border-gray-200 card-shadow">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Monthly Income & Expenses</h3>
+                <canvas id="incomeExpenseChart" height="250"></canvas>
+              </div>
+              
+              <div class="bg-white p-6 rounded-xl border border-gray-200 card-shadow">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Spending by Category</h3>
+                <div class="flex items-center justify-center h-64">
+                  <p class="text-gray-500">Category data will appear in Savings tab</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Savings Tab -->
+          <div id="savingsTab" class="tab-content hidden">
+            <!-- Savings Form -->
+            <div class="bg-gray-50 rounded-xl p-6 mb-8 card-shadow">
+              <h2 class="text-lg font-semibold text-gray-800 mb-4">Track Savings Goal</h2>
+              <form id="savingsForm" class="grid grid-cols-1 md:grid-cols-6 gap-4">
+                <div>
+                  <label for="sDate" class="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                  <input type="date" id="sDate" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                </div>
+                
+                <div>
+                  <label for="sType" class="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                  <select id="sType" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                    <option value="income">Income</option>
+                    <option value="expense">Expense</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label for="sAmount" class="block text-sm font-medium text-gray-700 mb-1">Amount (₹)</label>
+                  <input type="number" id="sAmount" placeholder="0.00" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                </div>
+                
+                <div>
+                  <label for="sDesc" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                  <input type="text" id="sDesc" placeholder="e.g. Bonus, Shopping" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                </div>
+                
+                <div>
+                  <label for="sCategory" class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                  <select id="sCategory" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"></select>
+                </div>
+                
+                <div class="flex items-end">
+                  <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg transition flex items-center justify-center">
+                    <i class="fas fa-save mr-2"></i> Save
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            <!-- Category Management -->
+            <div class="bg-white rounded-xl border border-gray-200 p-6 mb-8 card-shadow">
+              <div class="flex justify-between items-center mb-4">
+                <h2 class="text-lg font-semibold text-gray-800">Savings Categories</h2>
+                <button id="settingsBtn" class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition flex items-center">
+                  <i class="fas fa-cog mr-2"></i> Manage Categories
+                </button>
+              </div>
+              
+              <div id="settingsPanel" class="hidden border-t pt-6 mt-6">
+                <h3 class="text-md font-medium text-gray-800 mb-4">Add New Category</h3>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                  <div>
+                    <label for="newCategory" class="block text-sm font-medium text-gray-700 mb-1">Category Name</label>
+                    <input type="text" id="newCategory" placeholder="e.g. Vacation, Car" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                  </div>
+                  
+                  <div>
+                    <label for="targetAmount" class="block text-sm font-medium text-gray-700 mb-1">Target Amount (₹)</label>
+                    <input type="number" id="targetAmount" placeholder="0.00" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                  </div>
+                  
+                  <div class="flex items-end">
+                    <button onclick="addCategory()" type="button" class="w-full bg-primary-600 hover:bg-primary-700 text-white py-2 px-4 rounded-lg transition flex items-center justify-center">
+                      <i class="fas fa-plus mr-2"></i> Add Category
+                    </button>
+                  </div>
+                </div>
+                
+                <h3 class="text-md font-medium text-gray-800 mb-4">Existing Categories</h3>
+                <div id="categoryList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+              </div>
+            </div>
+
+            <!-- Savings Goals -->
+            <div class="mb-8">
+              <h2 class="text-lg font-semibold text-gray-800 mb-4">Your Savings Progress</h2>
+              <div id="savingsList" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+            </div>
+
+            <!-- Savings Chart -->
+            <div class="bg-white p-6 rounded-xl border border-gray-200 card-shadow">
+              <h3 class="text-lg font-semibold text-gray-800 mb-4">Category-wise Savings Progress</h3>
+              <canvas id="categoryChart" height="300"></canvas>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-8">
+      <div class="container mx-auto px-4">
+        <div class="flex flex-col md:flex-row justify-between items-center">
+          <div class="mb-4 md:mb-0">
+            <div class="flex items-center space-x-2">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-lime-300" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
+              </svg>
+              <span class="text-xl font-bold">Lime Finance</span>
+            </div>
+            <p class="text-gray-400 mt-2">Your personal finance companion</p>
+          </div>
+          <div class="flex space-x-6">
+            <a href="#" class="text-gray-400 hover:text-white transition">Privacy</a>
+            <a href="#" class="text-gray-400 hover:text-white transition">Terms</a>
+            <a href="#" class="text-gray-400 hover:text-white transition">Contact</a>
+          </div>
+        </div>
+        <div class="border-t border-gray-700 mt-6 pt-6 text-center text-gray-400 text-sm">
+          © 2023 Lime Finance. All rights reserved.
+        </div>
+      </div>
+    </footer>
   </div>
 
   <!-- JS Script -->
   <script>
+    // Tab functionality
     function showTab(tabId) {
       document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
       document.getElementById(tabId).classList.remove('hidden');
+      
+      // Update active tab button
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      event.currentTarget.classList.add('active');
     }
 
     // ---------- Income/Expense Section ----------
@@ -112,17 +402,30 @@
     function updateTableAndSummary() {
       tableEl.innerHTML = "";
       let income = 0, expense = 0;
-      records.forEach((rec, index) => {
+      
+      records.sort((a, b) => new Date(b.date) - new Date(a.date)).forEach((rec, index) => {
         const row = document.createElement("tr");
+        row.className = "hover:bg-gray-50";
         row.innerHTML = `
-          <td class="px-4 py-2">${rec.date}</td>
-          <td class="px-4 py-2">${rec.type}</td>
-          <td class="px-4 py-2">${rec.description}</td>
-          <td class="px-4 py-2">₹${rec.amount}</td>
-          <td class="px-4 py-2"><button onclick="deleteRecord(${index})" class="bg-red-500 text-white px-2 py-1 rounded">Delete</button></td>`;
+          <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${rec.date}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm ${rec.type === 'income' ? 'text-green-600' : 'text-red-600'}">
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${rec.type === 'income' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+              ${rec.type === 'income' ? 'Income' : 'Expense'}
+            </span>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${rec.description}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm ${rec.type === 'income' ? 'text-green-600 font-medium' : 'text-red-600 font-medium'}">
+            ${rec.type === 'income' ? '+' : '-'}₹${rec.amount.toFixed(2)}
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+            <button onclick="deleteRecord(${index})" class="text-red-600 hover:text-red-900 transition">
+              <i class="fas fa-trash-alt"></i>
+            </button>
+          </td>`;
         tableEl.appendChild(row);
         rec.type === "income" ? income += rec.amount : expense += rec.amount;
       });
+      
       incomeEl.textContent = income.toFixed(2);
       expenseEl.textContent = expense.toFixed(2);
       balanceEl.textContent = (income - expense).toFixed(2);
@@ -141,12 +444,18 @@
       localStorage.setItem("records", JSON.stringify(records));
       this.reset();
       updateTableAndSummary();
+      
+      // Show success notification
+      showNotification('Transaction added successfully!', 'success');
     });
 
     function deleteRecord(index) {
-      records.splice(index, 1);
-      localStorage.setItem("records", JSON.stringify(records));
-      updateTableAndSummary();
+      if (confirm('Are you sure you want to delete this transaction?')) {
+        records.splice(index, 1);
+        localStorage.setItem("records", JSON.stringify(records));
+        updateTableAndSummary();
+        showNotification('Transaction deleted successfully!', 'success');
+      }
     }
 
     function groupByMonth(data) {
@@ -164,17 +473,60 @@
       const labels = Object.keys(monthlyData).sort((a, b) => new Date(a) - new Date(b));
       const incomeData = labels.map(m => monthlyData[m].income || 0);
       const expenseData = labels.map(m => monthlyData[m].expense || 0);
+      
       if (chart) chart.destroy();
+      
       chart = new Chart(chartEl, {
-        type: 'line',
+        type: 'bar',
         data: {
           labels,
           datasets: [
-            { label: 'Income', data: incomeData, borderColor: '#4caf50', tension: 0.3 },
-            { label: 'Expense', data: expenseData, borderColor: '#f44336', tension: 0.3 }
+            { 
+              label: 'Income', 
+              data: incomeData, 
+              backgroundColor: '#10b981',
+              borderColor: '#059669',
+              borderWidth: 1
+            },
+            { 
+              label: 'Expense', 
+              data: expenseData, 
+              backgroundColor: '#ef4444',
+              borderColor: '#dc2626',
+              borderWidth: 1
+            }
           ]
         },
-        options: { responsive: true, plugins: { legend: { position: 'top' } } }
+        options: { 
+          responsive: true, 
+          maintainAspectRatio: false,
+          plugins: { 
+            legend: { 
+              position: 'top',
+              labels: {
+                boxWidth: 12,
+                padding: 20
+              }
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return context.dataset.label + ': ₹' + context.raw.toFixed(2);
+                }
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                callback: function(value) {
+                  return '₹' + value;
+                }
+              }
+            }
+          }
+        }
       });
     }
 
@@ -200,6 +552,7 @@
       localStorage.setItem("savings", JSON.stringify(savings));
       this.reset();
       renderSavingsSummary();
+      showNotification('Savings entry added successfully!', 'success');
     });
 
     function getCategoryTotal(name) {
@@ -213,18 +566,49 @@
       categories.forEach(cat => {
         const total = getCategoryTotal(cat.name);
         const safeTotal = total < 0 ? 0 : total;
-        const percent = safeTotal / cat.target;
-        const status = percent >= 1 ? 'text-green-600' : percent >= 0.7 ? 'text-orange-500' : 'text-red-600';
+        const percent = Math.min(safeTotal / cat.target, 1);
+        const percentDisplay = Math.round(percent * 100);
+        
+        const statusColor = percent >= 1 ? 'bg-green-500' : percent >= 0.7 ? 'bg-yellow-500' : 'bg-red-500';
+        const statusText = percent >= 1 ? 'Achieved!' : percent >= 0.7 ? 'Good progress' : 'Needs attention';
+        const statusIcon = percent >= 1 ? 'fas fa-check-circle text-green-500' : 
+                          percent >= 0.7 ? 'fas fa-hourglass-half text-yellow-500' : 'fas fa-exclamation-circle text-red-500';
+        
         const card = document.createElement("div");
-        card.className = "border rounded-lg p-4";
+        card.className = "bg-white border border-gray-200 rounded-xl p-6 transition-all duration-200 saving-card card-shadow";
         card.innerHTML = `
-          <div class="text-lg font-semibold mb-2">${cat.name} ${safeTotal >= cat.target ? '<span class="text-green-600 ml-2 font-bold">🎉 Achieved!</span>' : ''}</div>
-          <div class="font-semibold ${status} mb-2">₹${safeTotal} / ₹${cat.target}</div>
-          <div class="space-y-1 text-sm text-gray-700">
+          <div class="flex justify-between items-start mb-3">
+            <h3 class="text-lg font-semibold text-gray-800">${cat.name}</h3>
+            <div class="flex items-center space-x-2">
+              <i class="${statusIcon}"></i>
+              <span class="text-sm font-medium ${percent >= 1 ? 'text-green-600' : percent >= 0.7 ? 'text-yellow-600' : 'text-red-600'}">${statusText}</span>
+            </div>
+          </div>
+          
+          <div class="mb-4">
+            <div class="flex justify-between items-center mb-1">
+              <span class="text-sm font-medium text-gray-600">Progress (${percentDisplay}%)</span>
+              <span class="text-sm font-medium ${percent >= 1 ? 'text-green-600' : percent >= 0.7 ? 'text-yellow-600' : 'text-red-600'}">
+                ₹${safeTotal.toFixed(2)} / ₹${cat.target.toFixed(2)}
+              </span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill ${statusColor}" style="width: ${percentDisplay}%"></div>
+            </div>
+          </div>
+          
+          <div class="space-y-2 text-sm text-gray-600">
             ${savings.filter(e => e.category === cat.name).map((entry, i) => `
-              <div class="flex justify-between items-center">
-                ${entry.date} - ${entry.type === 'income' ? '+' : '-'}₹${entry.amount} (${entry.description})
-                <button onclick="deleteSaving(${i})" class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600">X</button>
+              <div class="flex justify-between items-center py-2 border-b border-gray-100 last:border-0">
+                <div>
+                  <span class="font-medium">${entry.date}</span> - ${entry.description}
+                  <span class="${entry.type === 'income' ? 'text-green-600' : 'text-red-600'} ml-2">
+                    ${entry.type === 'income' ? '+' : '-'}₹${entry.amount.toFixed(2)}
+                  </span>
+                </div>
+                <button onclick="deleteSaving(${i})" class="text-red-500 hover:text-red-700 transition">
+                  <i class="fas fa-times"></i>
+                </button>
               </div>
             `).join('')}
           </div>`;
@@ -234,9 +618,12 @@
     }
 
     function deleteSaving(index) {
-      savings.splice(index, 1);
-      localStorage.setItem("savings", JSON.stringify(savings));
-      renderSavingsSummary();
+      if (confirm('Are you sure you want to delete this savings entry?')) {
+        savings.splice(index, 1);
+        localStorage.setItem("savings", JSON.stringify(savings));
+        renderSavingsSummary();
+        showNotification('Savings entry deleted!', 'success');
+      }
     }
 
     function renderCategoriesInDropdown() {
@@ -252,7 +639,10 @@
     function addCategory() {
       const name = document.getElementById("newCategory").value.trim();
       const target = parseFloat(document.getElementById("targetAmount").value);
-      if (!name || isNaN(target)) return;
+      if (!name || isNaN(target)) {
+        showNotification('Please enter valid category name and target amount!', 'error');
+        return;
+      }
       categories.push({ name, target });
       localStorage.setItem("categories", JSON.stringify(categories));
       document.getElementById("newCategory").value = '';
@@ -260,29 +650,38 @@
       renderCategoriesInDropdown();
       renderCategoryList();
       renderSavingsSummary();
+      showNotification('Category added successfully!', 'success');
     }
 
     function renderCategoryList() {
       categoryList.innerHTML = '';
       categories.forEach((cat, i) => {
         const row = document.createElement("div");
-        row.className = "flex justify-between items-center bg-gray-50 px-4 py-2 rounded";
+        row.className = "bg-gray-50 rounded-lg p-4 flex justify-between items-center";
         row.innerHTML = `
-          <span>${cat.name} (₹${cat.target})</span>
-          <button onclick="deleteCategory(${i})" class="text-sm bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600">Delete</button>`;
+          <div>
+            <h4 class="font-medium text-gray-800">${cat.name}</h4>
+            <p class="text-sm text-gray-600">Target: ₹${cat.target.toFixed(2)}</p>
+          </div>
+          <button onclick="deleteCategory(${i})" class="text-red-500 hover:text-red-700 transition p-2">
+            <i class="fas fa-trash-alt"></i>
+          </button>`;
         categoryList.appendChild(row);
       });
     }
 
     function deleteCategory(index) {
-      const name = categories[index].name;
-      categories.splice(index, 1);
-      savings = savings.filter(e => e.category !== name);
-      localStorage.setItem("categories", JSON.stringify(categories));
-      localStorage.setItem("savings", JSON.stringify(savings));
-      renderCategoriesInDropdown();
-      renderCategoryList();
-      renderSavingsSummary();
+      if (confirm('Are you sure? This will also delete all related savings entries.')) {
+        const name = categories[index].name;
+        categories.splice(index, 1);
+        savings = savings.filter(e => e.category !== name);
+        localStorage.setItem("categories", JSON.stringify(categories));
+        localStorage.setItem("savings", JSON.stringify(savings));
+        renderCategoriesInDropdown();
+        renderCategoryList();
+        renderSavingsSummary();
+        showNotification('Category deleted!', 'success');
+      }
     }
 
     function groupByMonthCategory() {
@@ -300,28 +699,80 @@
       const ctx = document.getElementById("categoryChart").getContext("2d");
       const groupedData = groupByMonthCategory();
       const allMonths = [...new Set(savings.map(s => new Date(s.date).toLocaleString('default', { year: 'numeric', month: 'short' })))].sort((a, b) => new Date(a) - new Date(b));
+      
       const datasets = categories.map((cat, i) => {
-        const color = `hsl(${(i * 60) % 360}, 70%, 50%)`;
+        const hue = (i * 60) % 360;
         return {
           label: cat.name,
           data: allMonths.map(m => groupedData[cat.name]?.[m] || 0),
-          borderColor: color,
-          backgroundColor: color + '33',
+          borderColor: `hsl(${hue}, 70%, 50%)`,
+          backgroundColor: `hsl(${hue}, 70%, 50%, 0.2)`,
           tension: 0.3,
-          fill: false
+          fill: true,
+          borderWidth: 2
         };
       });
+      
       if (categoryChart) categoryChart.destroy();
+      
       categoryChart = new Chart(ctx, {
         type: 'line',
-        data: { labels: allMonths, datasets },
-        options: { responsive: true, plugins: { legend: { position: 'top' } } }
+        data: { 
+          labels: allMonths, 
+          datasets 
+        },
+        options: { 
+          responsive: true, 
+          maintainAspectRatio: false,
+          plugins: { 
+            legend: { 
+              position: 'top',
+              labels: {
+                boxWidth: 12,
+                padding: 20
+              }
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return context.dataset.label + ': ₹' + context.raw.toFixed(2);
+                }
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                callback: function(value) {
+                  return '₹' + value;
+                }
+              }
+            }
+          }
+        }
       });
     }
 
+    // Toggle settings panel
     document.getElementById("settingsBtn").addEventListener("click", () => {
       settingsPanel.classList.toggle("hidden");
     });
+
+    // Notification function
+    function showNotification(message, type) {
+      const notification = document.createElement('div');
+      notification.className = `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg text-white font-medium ${
+        type === 'success' ? 'bg-green-500' : 'bg-red-500'
+      } transition transform duration-300 translate-x-0 opacity-100`;
+      notification.textContent = message;
+      document.body.appendChild(notification);
+      
+      setTimeout(() => {
+        notification.classList.add('translate-x-full', 'opacity-0');
+        setTimeout(() => notification.remove(), 300);
+      }, 3000);
+    }
 
     // Initial load
     renderCategoriesInDropdown();
