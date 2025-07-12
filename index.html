@@ -9,7 +9,6 @@
 </head>
 <body class="bg-gray-100 p-4">
 
-  <!-- Container -->
   <div class="w-full max-w-screen-lg mx-auto bg-white p-4 sm:p-6 rounded-xl shadow-md">
     <h1 class="text-2xl sm:text-3xl font-bold text-center mb-6 text-gray-800">💼 Lime-Finance</h1>
 
@@ -19,28 +18,25 @@
       <button onclick="showTab('savingsTab')" class="tab-btn bg-gray-200 text-gray-700 px-4 py-2 rounded hover:bg-blue-200">Savings</button>
     </div>
 
-    <!-- Expense Tab -->
+    <!-- Income/Expense Tab -->
     <div id="expenseTab" class="tab-content">
-      <!-- Summary -->
       <div class="flex flex-wrap gap-4 justify-between mb-6">
         <div class="w-full sm:flex-1 bg-green-500 text-white p-4 sm:p-6 rounded-lg text-center font-semibold text-lg">Income: ₹<span id="totalIncome">0</span></div>
         <div class="w-full sm:flex-1 bg-red-500 text-white p-4 sm:p-6 rounded-lg text-center font-semibold text-lg">Expense: ₹<span id="totalExpense">0</span></div>
         <div class="w-full sm:flex-1 bg-blue-500 text-white p-4 sm:p-6 rounded-lg text-center font-semibold text-lg">Balance: ₹<span id="balance">0</span></div>
       </div>
 
-      <!-- Form -->
       <form id="entryForm" class="flex flex-wrap gap-4 mb-6">
-        <input type="date" id="date" required class="w-full sm:flex-1 px-4 py-2 border border-gray-300 rounded-md">
-        <select id="type" required class="w-full sm:flex-1 px-4 py-2 border border-gray-300 rounded-md">
+        <input type="date" id="date" required class="w-full sm:flex-1 px-4 py-2 border rounded-md">
+        <select id="type" required class="w-full sm:flex-1 px-4 py-2 border rounded-md">
           <option value="income">Income</option>
           <option value="expense">Expense</option>
         </select>
-        <input type="number" id="amount" placeholder="Amount (₹)" required class="w-full sm:flex-1 px-4 py-2 border border-gray-300 rounded-md">
-        <input type="text" id="description" placeholder="Description" required class="w-full sm:flex-1 px-4 py-2 border border-gray-300 rounded-md">
+        <input type="number" id="amount" placeholder="Amount (₹)" required class="w-full sm:flex-1 px-4 py-2 border rounded-md">
+        <input type="text" id="description" placeholder="Description" required class="w-full sm:flex-1 px-4 py-2 border rounded-md">
         <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700">Add Entry</button>
       </form>
 
-      <!-- Table -->
       <div class="overflow-x-auto">
         <table class="w-full border-collapse text-sm sm:text-base">
           <thead class="bg-gray-200">
@@ -56,7 +52,6 @@
         </table>
       </div>
 
-      <!-- Chart -->
       <div class="mt-10">
         <h2 class="text-xl text-center font-semibold mb-4 text-gray-700">Monthly Income & Expense Overview</h2>
         <canvas id="incomeExpenseChart" height="100"></canvas>
@@ -65,32 +60,32 @@
 
     <!-- Savings Tab -->
     <div id="savingsTab" class="tab-content hidden">
-      <!-- Form -->
       <form id="savingsForm" class="flex flex-wrap gap-4 mb-6">
-        <input type="date" id="sDate" required class="w-full sm:flex-1 px-4 py-2 border border-gray-300 rounded-md">
-        <input type="number" id="sAmount" placeholder="Amount" required class="w-full sm:flex-1 px-4 py-2 border border-gray-300 rounded-md">
-        <input type="text" id="sDesc" placeholder="Description" required class="w-full sm:flex-1 px-4 py-2 border border-gray-300 rounded-md">
-        <select id="sCategory" required class="w-full sm:flex-1 px-4 py-2 border border-gray-300 rounded-md"></select>
-        <button type="submit" class="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700">Add Saving</button>
+        <input type="date" id="sDate" required class="w-full sm:flex-1 px-4 py-2 border rounded-md">
+        <select id="sType" required class="w-full sm:flex-1 px-4 py-2 border rounded-md">
+          <option value="income">Income</option>
+          <option value="expense">Expense</option>
+        </select>
+        <input type="number" id="sAmount" placeholder="Amount" required class="w-full sm:flex-1 px-4 py-2 border rounded-md">
+        <input type="text" id="sDesc" placeholder="Description" required class="w-full sm:flex-1 px-4 py-2 border rounded-md">
+        <select id="sCategory" required class="w-full sm:flex-1 px-4 py-2 border rounded-md"></select>
+        <button type="submit" class="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700">Add Entry</button>
       </form>
 
-      <!-- Category Settings -->
       <div class="mb-6">
         <button id="settingsBtn" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 mb-4">⚙️ Manage Categories</button>
         <div id="settingsPanel" class="hidden border-t pt-4 mt-4">
           <div class="flex flex-wrap gap-4 mb-4">
-            <input type="text" id="newCategory" placeholder="New Category" class="w-full sm:w-64 px-4 py-2 border border-gray-300 rounded-md">
-            <input type="number" id="targetAmount" placeholder="Target ₹" class="w-full sm:w-64 px-4 py-2 border border-gray-300 rounded-md">
+            <input type="text" id="newCategory" placeholder="New Category" class="w-full sm:w-64 px-4 py-2 border rounded-md">
+            <input type="number" id="targetAmount" placeholder="Target ₹" class="w-full sm:w-64 px-4 py-2 border rounded-md">
             <button onclick="addCategory()" type="button" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Add Category</button>
           </div>
           <div id="categoryList" class="space-y-2 text-gray-700 font-medium"></div>
         </div>
       </div>
 
-      <!-- Summary -->
       <div id="savingsList" class="space-y-4 mb-10"></div>
 
-      <!-- Chart -->
       <div class="mt-10">
         <h2 class="text-xl text-center font-semibold mb-4 text-gray-700">Category-wise Monthly Savings</h2>
         <canvas id="categoryChart" height="100"></canvas>
@@ -98,16 +93,14 @@
     </div>
   </div>
 
-  <!-- Script -->
+  <!-- JS Script -->
   <script>
-    // All your existing JS code here (no changes required)
-// TAB SWITCHING
     function showTab(tabId) {
       document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
       document.getElementById(tabId).classList.remove('hidden');
     }
 
-    // INCOME/EXPENSE TRACKER LOGIC
+    // ---------- Income/Expense Section ----------
     let records = JSON.parse(localStorage.getItem("records")) || [];
     const incomeEl = document.getElementById("totalIncome");
     const expenseEl = document.getElementById("totalExpense");
@@ -118,8 +111,7 @@
 
     function updateTableAndSummary() {
       tableEl.innerHTML = "";
-      let income = 0;
-      let expense = 0;
+      let income = 0, expense = 0;
       records.forEach((rec, index) => {
         const row = document.createElement("tr");
         row.innerHTML = `
@@ -127,23 +119,14 @@
           <td class="px-4 py-2">${rec.type}</td>
           <td class="px-4 py-2">${rec.description}</td>
           <td class="px-4 py-2">₹${rec.amount}</td>
-          <td class="px-4 py-2">
-            <button onclick="deleteRecord(${index})" class="bg-red-500 text-white px-2 py-1 rounded">Delete</button>
-          </td>`;
+          <td class="px-4 py-2"><button onclick="deleteRecord(${index})" class="bg-red-500 text-white px-2 py-1 rounded">Delete</button></td>`;
         tableEl.appendChild(row);
-        if (rec.type === "income") income += rec.amount;
-        else expense += rec.amount;
+        rec.type === "income" ? income += rec.amount : expense += rec.amount;
       });
       incomeEl.textContent = income.toFixed(2);
       expenseEl.textContent = expense.toFixed(2);
       balanceEl.textContent = (income - expense).toFixed(2);
       updateChart();
-    }
-
-    function deleteRecord(index) {
-      records.splice(index, 1);
-      localStorage.setItem("records", JSON.stringify(records));
-      updateTableAndSummary();
     }
 
     document.getElementById("entryForm").addEventListener("submit", function (e) {
@@ -159,6 +142,12 @@
       this.reset();
       updateTableAndSummary();
     });
+
+    function deleteRecord(index) {
+      records.splice(index, 1);
+      localStorage.setItem("records", JSON.stringify(records));
+      updateTableAndSummary();
+    }
 
     function groupByMonth(data) {
       const summary = {};
@@ -181,15 +170,15 @@
         data: {
           labels,
           datasets: [
-            { label: 'Income', data: incomeData, borderColor: '#4caf50', backgroundColor: 'rgba(76,175,80,0.2)', tension: 0.3 },
-            { label: 'Expense', data: expenseData, borderColor: '#f44336', backgroundColor: 'rgba(244,67,54,0.2)', tension: 0.3 }
+            { label: 'Income', data: incomeData, borderColor: '#4caf50', tension: 0.3 },
+            { label: 'Expense', data: expenseData, borderColor: '#f44336', tension: 0.3 }
           ]
         },
         options: { responsive: true, plugins: { legend: { position: 'top' } } }
       });
     }
 
-    // SAVINGS TRACKER LOGIC
+    // ---------- Savings Section ----------
     let savings = JSON.parse(localStorage.getItem("savings")) || [];
     let categories = JSON.parse(localStorage.getItem("categories")) || [];
     const sCategory = document.getElementById("sCategory");
@@ -198,51 +187,11 @@
     const settingsPanel = document.getElementById("settingsPanel");
     let categoryChart;
 
-    function renderCategoriesInDropdown() {
-      sCategory.innerHTML = '';
-      categories.forEach(cat => {
-        const opt = document.createElement("option");
-        opt.value = cat.name;
-        opt.textContent = cat.name;
-        sCategory.appendChild(opt);
-      });
-    }
-
-    function getCategoryTotal(name) {
-      return savings.filter(e => e.category === name).reduce((sum, e) => sum + e.amount, 0);
-    }
-
-    function renderSavingsSummary() {
-      savingsList.innerHTML = '';
-      categories.forEach(cat => {
-        const total = getCategoryTotal(cat.name);
-        const percent = total / cat.target;
-        let status = percent >= 1 ? 'text-green-600' : percent >= 0.7 ? 'text-orange-500' : 'text-red-600';
-        const card = document.createElement("div");
-        card.className = "border border-gray-200 rounded-lg p-4";
-        card.innerHTML = `
-          <div class="text-lg font-semibold mb-2">
-            ${cat.name}
-            ${total >= cat.target ? '<span class="text-green-600 ml-2 font-bold">🎉 Achieved!</span>' : ''}
-          </div>
-          <div class="font-semibold ${status} mb-2">₹${total} / ₹${cat.target}</div>
-          <div class="space-y-1 text-sm text-gray-700">
-            ${savings.filter(e => e.category === cat.name).map((entry, i) => `
-              <div class="flex justify-between items-center">
-                ${entry.date} - ₹${entry.amount} (${entry.description})
-                <button onclick="deleteSaving(${i})" class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600">X</button>
-              </div>
-            `).join('')}
-          </div>`;
-        savingsList.appendChild(card);
-      });
-      renderLineChart();
-    }
-
     document.getElementById("savingsForm").addEventListener("submit", function(e) {
       e.preventDefault();
       const entry = {
         date: document.getElementById("sDate").value,
+        type: document.getElementById("sType").value,
         amount: parseFloat(document.getElementById("sAmount").value),
         description: document.getElementById("sDesc").value,
         category: sCategory.value
@@ -253,10 +202,51 @@
       renderSavingsSummary();
     });
 
+    function getCategoryTotal(name) {
+      return savings
+        .filter(e => e.category === name)
+        .reduce((sum, e) => e.type === 'income' ? sum + e.amount : sum - e.amount, 0);
+    }
+
+    function renderSavingsSummary() {
+      savingsList.innerHTML = '';
+      categories.forEach(cat => {
+        const total = getCategoryTotal(cat.name);
+        const safeTotal = total < 0 ? 0 : total;
+        const percent = safeTotal / cat.target;
+        const status = percent >= 1 ? 'text-green-600' : percent >= 0.7 ? 'text-orange-500' : 'text-red-600';
+        const card = document.createElement("div");
+        card.className = "border rounded-lg p-4";
+        card.innerHTML = `
+          <div class="text-lg font-semibold mb-2">${cat.name} ${safeTotal >= cat.target ? '<span class="text-green-600 ml-2 font-bold">🎉 Achieved!</span>' : ''}</div>
+          <div class="font-semibold ${status} mb-2">₹${safeTotal} / ₹${cat.target}</div>
+          <div class="space-y-1 text-sm text-gray-700">
+            ${savings.filter(e => e.category === cat.name).map((entry, i) => `
+              <div class="flex justify-between items-center">
+                ${entry.date} - ${entry.type === 'income' ? '+' : '-'}₹${entry.amount} (${entry.description})
+                <button onclick="deleteSaving(${i})" class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600">X</button>
+              </div>
+            `).join('')}
+          </div>`;
+        savingsList.appendChild(card);
+      });
+      renderLineChart();
+    }
+
     function deleteSaving(index) {
       savings.splice(index, 1);
       localStorage.setItem("savings", JSON.stringify(savings));
       renderSavingsSummary();
+    }
+
+    function renderCategoriesInDropdown() {
+      sCategory.innerHTML = '';
+      categories.forEach(cat => {
+        const opt = document.createElement("option");
+        opt.value = cat.name;
+        opt.textContent = cat.name;
+        sCategory.appendChild(opt);
+      });
     }
 
     function addCategory() {
@@ -295,17 +285,13 @@
       renderSavingsSummary();
     }
 
-    document.getElementById("settingsBtn").addEventListener("click", () => {
-      settingsPanel.classList.toggle("hidden");
-    });
-
     function groupByMonthCategory() {
       const grouped = {};
-      savings.forEach(({ date, amount, category }) => {
+      savings.forEach(({ date, amount, category, type }) => {
         const month = new Date(date).toLocaleString('default', { year: 'numeric', month: 'short' });
         if (!grouped[category]) grouped[category] = {};
         if (!grouped[category][month]) grouped[category][month] = 0;
-        grouped[category][month] += amount;
+        grouped[category][month] += type === 'income' ? amount : -amount;
       });
       return grouped;
     }
@@ -321,8 +307,8 @@
           data: allMonths.map(m => groupedData[cat.name]?.[m] || 0),
           borderColor: color,
           backgroundColor: color + '33',
-          fill: false,
-          tension: 0.3
+          tension: 0.3,
+          fill: false
         };
       });
       if (categoryChart) categoryChart.destroy();
@@ -333,11 +319,15 @@
       });
     }
 
+    document.getElementById("settingsBtn").addEventListener("click", () => {
+      settingsPanel.classList.toggle("hidden");
+    });
+
+    // Initial load
     renderCategoriesInDropdown();
     renderCategoryList();
     renderSavingsSummary();
     updateTableAndSummary();
-    </script>
-
+  </script>
 </body>
 </html>
