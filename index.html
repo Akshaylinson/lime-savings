@@ -15,7 +15,11 @@
           colors: {
             lime: '#00FF00',
             black: '#000000',
-            white: '#FFFFFF'
+            white: '#FFFFFF',
+            blue: '#3B82F6',
+            red: '#EF4444',
+            purple: '#8B5CF6',
+            yellow: '#F59E0B'
           }
         }
       }
@@ -269,8 +273,8 @@
                 <div>
                   <label for="sType" class="block text-sm font-medium text-gray-700 mb-1">Type</label>
                   <select id="sType" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lime focus:border-lime">
-                    <option value="income">Income</option>
-                    <option value="expense">Expense</option>
+                    <option value="deposit">Deposit</option>
+                    <option value="withdrawal">Withdrawal</option>
                   </select>
                 </div>
                 
@@ -460,11 +464,11 @@
             { 
               label: 'Expense', 
               data: expenseData, 
-              borderColor: '#000000',
-              backgroundColor: '#000000',
+              borderColor: '#EF4444',
+              backgroundColor: '#EF4444',
               tension: 0.3,
               borderWidth: 2,
-              pointBackgroundColor: '#000000',
+              pointBackgroundColor: '#EF4444',
               pointRadius: 4,
               pointHoverRadius: 6
             }
@@ -473,23 +477,6 @@
         options: getChartOptions()
       });
     }
-
-    document.getElementById("entryForm").addEventListener("submit", function (e) {
-      e.preventDefault();
-      const entry = {
-        date: document.getElementById("date").value,
-        type: document.getElementById("type").value,
-        amount: parseFloat(document.getElementById("amount").value),
-        description: document.getElementById("description").value
-      };
-      records.push(entry);
-      localStorage.setItem("records", JSON.stringify(records));
-      this.reset();
-      updateTableAndSummary();
-      
-      // Show success notification
-      showNotification('Transaction added successfully!', 'success');
-    });
 
     function deleteRecord(index) {
       if (confirm('Are you sure you want to delete this transaction?')) {
@@ -539,21 +526,21 @@
     function getCategoryTotal(name) {
       return savings
         .filter(e => e.category === name)
-        .reduce((sum, e) => e.type === 'income' ? sum + e.amount : sum - e.amount, 0);
+        .reduce((sum, e) => e.type === 'deposit' ? sum + e.amount : sum - e.amount, 0);
     }
 
     function renderSavingsSummary() {
       savingsList.innerHTML = '';
-      categories.forEach(cat => {
+      categories.forEach((cat, catIndex) => {
         const total = getCategoryTotal(cat.name);
         const safeTotal = total < 0 ? 0 : total;
         const percent = Math.min(safeTotal / cat.target, 1);
         const percentDisplay = Math.round(percent * 100);
         
-        const statusColor = percent >= 1 ? 'bg-lime' : percent >= 0.7 ? 'bg-gray-300' : 'bg-gray-300';
+        const statusColor = percent >= 1 ? 'bg-lime' : percent >= 0.7 ? 'bg-yellow' : 'bg-red';
         const statusText = percent >= 1 ? 'Achieved!' : percent >= 0.7 ? 'Good progress' : 'Needs attention';
         const statusIcon = percent >= 1 ? 'fas fa-check-circle text-lime' : 
-                          percent >= 0.7 ? 'fas fa-hourglass-half text-gray-500' : 'fas fa-exclamation-circle text-gray-500';
+                          percent >= 0.7 ? 'fas fa-hourglass-half text-yellow' : 'fas fa-exclamation-circle text-red';
         
         const card = document.createElement("div");
         card.className = "bg-white border border-gray-200 rounded-xl p-6 transition-all duration-200 saving-card card-shadow";
@@ -562,14 +549,14 @@
             <h3 class="text-lg font-semibold text-black">${cat.name}</h3>
             <div class="flex items-center space-x-2">
               <i class="${statusIcon}"></i>
-              <span class="text-sm font-medium ${percent >= 1 ? 'text-lime' : percent >= 0.7 ? 'text-gray-700' : 'text-gray-700'}">${statusText}</span>
+              <span class="text-sm font-medium ${percent >= 1 ? 'text-lime' : percent >= 0.7 ? 'text-yellow' : 'text-red'}">${statusText}</span>
             </div>
           </div>
           
           <div class="mb-4">
             <div class="flex justify-between items-center mb-1">
               <span class="text-sm font-medium text-gray-600">Progress (${percentDisplay}%)</span>
-              <span class="text-sm font-medium ${percent >= 1 ? 'text-lime' : percent >= 0.7 ? 'text-gray-700' : 'text-gray-700'}">
+              <span class="text-sm font-medium ${percent >= 1 ? 'text-lime' : percent >= 0.7 ? 'text-yellow' : 'text-red'}">
                 ₹${safeTotal.toFixed(2)} / ₹${cat.target.toFixed(2)}
               </span>
             </div>
@@ -583,15 +570,20 @@
               <div class="flex justify-between items-center py-2 border-b border-gray-100 last:border-0">
                 <div>
                   <span class="font-medium">${entry.date}</span> - ${entry.description}
-                  <span class="${entry.type === 'income' ? 'text-lime' : 'text-lime'} ml-2">
-                    ${entry.type === 'income' ? '+' : '-'}₹${entry.amount.toFixed(2)}
+                  <span class="${entry.type === 'deposit' ? 'text-lime' : 'text-red'} ml-2">
+                    ${entry.type === 'deposit' ? '+' : '-'}₹${entry.amount.toFixed(2)}
                   </span>
                 </div>
-                <button onclick="deleteSaving(${i})" class="text-lime hover:text-black transition">
+                <button onclick="deleteSaving('${cat.name}', ${i})" class="text-lime hover:text-black transition">
                   <i class="fas fa-times"></i>
                 </button>
               </div>
             `).join('')}
+          </div>
+          <div class="mt-4">
+            <button onclick="deleteCategory(${catIndex})" class="text-red hover:text-black transition text-sm">
+              <i class="fas fa-trash-alt mr-1"></i> Delete Category
+            </button>
           </div>`;
         savingsList.appendChild(card);
       });
@@ -602,15 +594,17 @@
       const groupedData = groupByMonthCategory();
       const allMonths = [...new Set(savings.map(s => new Date(s.date).toLocaleString('default', { year: 'numeric', month: 'short' })))].sort((a, b) => new Date(a) - new Date(b));
       
+      const colors = ['#00FF00', '#3B82F6', '#8B5CF6', '#F59E0B', '#EF4444'];
+      
       const datasets = categories.map((cat, i) => {
         return {
           label: cat.name,
           data: allMonths.map(m => groupedData[cat.name]?.[m] || 0),
-          borderColor: '#00FF00',
-          backgroundColor: '#00FF00',
+          borderColor: colors[i % colors.length],
+          backgroundColor: colors[i % colors.length],
           tension: 0.3,
           borderWidth: 2,
-          pointBackgroundColor: '#00FF00',
+          pointBackgroundColor: colors[i % colors.length],
           pointRadius: 4,
           pointHoverRadius: 6,
           fill: true
@@ -629,12 +623,24 @@
       });
     }
 
-    function deleteSaving(index) {
+    function deleteSaving(categoryName, index) {
       if (confirm('Are you sure you want to delete this savings entry?')) {
-        savings.splice(index, 1);
-        localStorage.setItem("savings", JSON.stringify(savings));
-        renderSavingsSummary();
-        showNotification('Savings entry deleted!', 'success');
+        // Find the actual index in the savings array
+        const categoryEntries = savings.filter(e => e.category === categoryName);
+        const entryToDelete = categoryEntries[index];
+        const globalIndex = savings.findIndex(e => 
+          e.date === entryToDelete.date && 
+          e.amount === entryToDelete.amount && 
+          e.description === entryToDelete.description && 
+          e.category === entryToDelete.category
+        );
+        
+        if (globalIndex !== -1) {
+          savings.splice(globalIndex, 1);
+          localStorage.setItem("savings", JSON.stringify(savings));
+          renderSavingsSummary();
+          showNotification('Savings entry deleted!', 'success');
+        }
       }
     }
 
@@ -702,7 +708,7 @@
         const month = new Date(date).toLocaleString('default', { year: 'numeric', month: 'short' });
         if (!grouped[category]) grouped[category] = {};
         if (!grouped[category][month]) grouped[category][month] = 0;
-        grouped[category][month] += type === 'income' ? amount : -amount;
+        grouped[category][month] += type === 'deposit' ? amount : -amount;
       });
       return grouped;
     }
@@ -769,7 +775,7 @@
     function showNotification(message, type) {
       const notification = document.createElement('div');
       notification.className = `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg text-white font-medium ${
-        type === 'success' ? 'bg-lime' : 'bg-black'
+        type === 'success' ? 'bg-lime' : 'bg-red'
       } transition transform duration-300 translate-x-0 opacity-100`;
       notification.textContent = message;
       document.body.appendChild(notification);
