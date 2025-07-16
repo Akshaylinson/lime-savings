@@ -16,10 +16,11 @@
             lime: '#00FF00',
             black: '#000000',
             white: '#FFFFFF',
-            blue: '#3B82F6',
-            red: '#EF4444',
-            purple: '#8B5CF6',
-            yellow: '#F59E0B'
+            limeDark: '#00CC00',
+            limeLight: '#CCFFCC',
+            limeTransparent: 'rgba(0, 255, 0, 0.1)',
+            limeTransparentDark: 'rgba(0, 255, 0, 0.2)',
+            red: '#FF0000'
           }
         }
       }
@@ -28,7 +29,8 @@
   <style>
     body {
       font-family: 'Inter', sans-serif;
-      background-color: white;
+      background-color: black;
+      color: white;
     }
     
     .tab-btn.active {
@@ -38,25 +40,29 @@
     }
     
     .card-shadow {
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 4px 6px -1px rgba(0, 255, 0, 0.1);
     }
     
     .progress-bar {
       height: 8px;
       border-radius: 4px;
-      background-color: #f0f0f0;
+      background-color: #333333;
       overflow: hidden;
     }
     
     .progress-fill {
       height: 100%;
       border-radius: 4px;
-      transition: width 0.5s ease;
+      transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .saving-card {
+      transition: all 0.3s ease;
     }
     
     .saving-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+      transform: translateY(-5px);
+      box-shadow: 0 10px 25px -5px rgba(0, 255, 0, 0.2);
     }
     
     .chart-container {
@@ -67,6 +73,8 @@
     
     .leaf-icon {
       position: relative;
+      display: inline-block;
+      animation: leafPulse 2s infinite;
     }
     
     .leaf-icon:after {
@@ -80,9 +88,122 @@
       clip-path: polygon(0 0, 100% 0, 50% 100%);
       transform: rotate(-15deg);
     }
+    
+    @keyframes leafPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .fade-in {
+      animation: fadeIn 0.6s ease-out forwards;
+    }
+    
+    .tab-content {
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.5s ease;
+    }
+    
+    .tab-content.active {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    
+    .notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 15px 20px;
+      border-radius: 8px;
+      color: white;
+      font-weight: 500;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      z-index: 1000;
+      transform: translateX(150%);
+      transition: transform 0.3s ease-out;
+    }
+    
+    .notification.show {
+      transform: translateX(0);
+    }
+    
+    .btn-bounce {
+      transition: transform 0.2s ease;
+    }
+    
+    .btn-bounce:hover {
+      transform: scale(1.05);
+    }
+    
+    .btn-bounce:active {
+      transform: scale(0.95);
+    }
+    
+    .settings-panel {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.5s ease;
+    }
+    
+    .settings-panel.show {
+      max-height: 1000px;
+    }
+    
+    /* Custom dark theme styles */
+    .bg-white {
+      background-color: #111111 !important;
+      color: white;
+    }
+    
+    .border-gray-200 {
+      border-color: #333333 !important;
+    }
+    
+    .text-gray-700 {
+      color: #CCCCCC !important;
+    }
+    
+    .text-gray-500 {
+      color: #999999 !important;
+    }
+    
+    .text-gray-900 {
+      color: white !important;
+    }
+    
+    .bg-gray-50 {
+      background-color: #222222 !important;
+    }
+    
+    .divide-gray-200 {
+      border-color: #333333 !important;
+    }
+    
+    .hover\:bg-gray-50:hover {
+      background-color: #333333 !important;
+    }
+    
+    input, select {
+      background-color: #222222 !important;
+      color: white !important;
+      border-color: #444444 !important;
+    }
+    
+    table {
+      color: white !important;
+    }
+    
+    .bg-gray-100 {
+      background-color: #333333 !important;
+    }
   </style>
 </head>
-<body class="bg-white">
+<body class="bg-black">
   <div class="min-h-screen">
     <!-- Header -->
     <header class="bg-black text-white shadow-md">
@@ -95,7 +216,7 @@
             <h1 class="text-2xl font-bold">Lime Finance</h1>
           </div>
           <div class="hidden md:flex items-center space-x-4">
-            <button class="px-3 py-1.5 rounded-md bg-black text-lime border border-lime hover:bg-gray-900 transition">
+            <button class="px-3 py-1.5 rounded-md bg-black text-lime border border-lime hover:bg-gray-900 transition btn-bounce">
               <i class="fas fa-bell mr-2"></i>Alerts
             </button>
             <div class="w-10 h-10 rounded-full bg-black border border-lime flex items-center justify-center text-lime">
@@ -108,7 +229,6 @@
         </div>
       </div>
     </header>
-
     <!-- Main Content -->
     <main class="container mx-auto px-4 py-8">
       <div class="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200">
@@ -121,26 +241,22 @@
             <button onclick="showTab('savingsTab')" class="tab-btn px-6 py-4 font-medium text-sm md:text-base whitespace-nowrap focus:outline-none">
               <i class="fas fa-piggy-bank mr-2"></i>Savings Goals
             </button>
-            <button class="px-6 py-4 font-medium text-sm md:text-base whitespace-nowrap text-gray-500 cursor-not-allowed">
+           <button onclick="showTab('reportsTab')" class="tab-btn px-6 py-4 font-medium text-sm md:text-base whitespace-nowrap focus:outline-none">
               <i class="fas fa-chart-pie mr-2"></i>Reports
-            </button>
-            <button class="px-6 py-4 font-medium text-sm md:text-base whitespace-nowrap text-gray-500 cursor-not-allowed">
-              <i class="fas fa-cog mr-2"></i>Settings
             </button>
           </nav>
         </div>
-
         <!-- Tab Contents -->
         <div class="p-6">
           <!-- Income/Expense Tab -->
-          <div id="expenseTab" class="tab-content">
+          <div id="expenseTab" class="tab-content active">
             <!-- Summary Cards -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
               <div class="bg-white border border-gray-200 rounded-xl p-6 card-shadow">
                 <div class="flex items-center justify-between">
                   <div>
                     <p class="text-sm font-medium text-gray-700">Total Income</p>
-                    <h3 class="text-2xl font-bold text-black mt-1">₹<span id="totalIncome">0</span></h3>
+                    <h3 class="text-2xl font-bold text-white mt-1">₹<span id="totalIncome">0</span></h3>
                     <p class="text-xs text-lime mt-2"><i class="fas fa-arrow-up mr-1"></i> 12% from last month</p>
                   </div>
                   <div class="p-3 rounded-lg border border-lime">
@@ -153,11 +269,11 @@
                 <div class="flex items-center justify-between">
                   <div>
                     <p class="text-sm font-medium text-gray-700">Total Expenses</p>
-                    <h3 class="text-2xl font-bold text-black mt-1">₹<span id="totalExpense">0</span></h3>
-                    <p class="text-xs text-lime mt-2"><i class="fas fa-arrow-up mr-1"></i> 8% from last month</p>
+                    <h3 class="text-2xl font-bold text-white mt-1">₹<span id="totalExpense">0</span></h3>
+                    <p class="text-xs text-red-500 mt-2"><i class="fas fa-arrow-up mr-1"></i> 8% from last month</p>
                   </div>
-                  <div class="p-3 rounded-lg border border-lime">
-                    <i class="fas fa-arrow-up-from-line text-lime text-xl"></i>
+                  <div class="p-3 rounded-lg border border-red-500">
+                    <i class="fas fa-arrow-up-from-line text-red-500 text-xl"></i>
                   </div>
                 </div>
               </div>
@@ -175,10 +291,9 @@
                 </div>
               </div>
             </div>
-
             <!-- Add Transaction Form -->
             <div class="bg-white rounded-xl p-6 mb-8 card-shadow border border-gray-200">
-              <h2 class="text-lg font-semibold text-black mb-4">Add New Transaction</h2>
+              <h2 class="text-lg font-semibold text-white mb-4">Add New Transaction</h2>
               <form id="entryForm" class="grid grid-cols-1 md:grid-cols-5 gap-4">
                 <div>
                   <label for="date" class="block text-sm font-medium text-gray-700 mb-1">Date</label>
@@ -204,17 +319,16 @@
                 </div>
                 
                 <div class="flex items-end">
-                  <button type="submit" class="w-full bg-black hover:bg-gray-900 text-lime py-2 px-4 rounded-lg transition flex items-center justify-center">
+                  <button type="submit" class="w-full bg-black hover:bg-gray-900 text-lime py-2 px-4 rounded-lg transition flex items-center justify-center btn-bounce">
                     <i class="fas fa-plus mr-2"></i> Add
                   </button>
                 </div>
               </form>
             </div>
-
             <!-- Transactions Table -->
             <div class="mb-8">
               <div class="flex justify-between items-center mb-4">
-                <h2 class="text-lg font-semibold text-black">Recent Transactions</h2>
+                <h2 class="text-lg font-semibold text-white">Recent Transactions</h2>
                 <div class="flex space-x-2">
                   <button class="px-3 py-1.5 text-sm bg-white border border-gray-200 hover:bg-gray-50 rounded-lg transition">
                     <i class="fas fa-filter mr-1"></i> Filter
@@ -240,30 +354,28 @@
                 </table>
               </div>
             </div>
-
             <!-- Charts -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div class="bg-white p-4 rounded-xl border border-gray-200 card-shadow">
-                <h3 class="text-lg font-semibold text-black mb-2">Monthly Income & Expenses</h3>
+                <h3 class="text-lg font-semibold text-white mb-2">Monthly Income & Expenses</h3>
                 <div class="chart-container">
                   <canvas id="incomeExpenseChart"></canvas>
                 </div>
               </div>
               
               <div class="bg-white p-4 rounded-xl border border-gray-200 card-shadow">
-                <h3 class="text-lg font-semibold text-black mb-2">Spending by Category</h3>
+                <h3 class="text-lg font-semibold text-white mb-2">Spending by Category</h3>
                 <div class="chart-container">
                   <p class="text-gray-500 text-center mt-16">Category data will appear in Savings tab</p>
                 </div>
               </div>
             </div>
           </div>
-
           <!-- Savings Tab -->
           <div id="savingsTab" class="tab-content hidden">
             <!-- Savings Form -->
             <div class="bg-white rounded-xl p-6 mb-8 card-shadow border border-gray-200">
-              <h2 class="text-lg font-semibold text-black mb-4">Track Savings Goal</h2>
+              <h2 class="text-lg font-semibold text-white mb-4">Track Savings Goal</h2>
               <form id="savingsForm" class="grid grid-cols-1 md:grid-cols-6 gap-4">
                 <div>
                   <label for="sDate" class="block text-sm font-medium text-gray-700 mb-1">Date</label>
@@ -274,7 +386,7 @@
                   <label for="sType" class="block text-sm font-medium text-gray-700 mb-1">Type</label>
                   <select id="sType" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lime focus:border-lime">
                     <option value="deposit">Deposit</option>
-                    <option value="withdrawal">Withdrawal</option>
+                    <option value="withdraw">Withdraw</option>
                   </select>
                 </div>
                 
@@ -294,24 +406,23 @@
                 </div>
                 
                 <div class="flex items-end">
-                  <button type="submit" class="w-full bg-black hover:bg-gray-900 text-lime py-2 px-4 rounded-lg transition flex items-center justify-center">
+                  <button type="submit" class="w-full bg-black hover:bg-gray-900 text-lime py-2 px-4 rounded-lg transition flex items-center justify-center btn-bounce">
                     <i class="fas fa-save mr-2"></i> Save
                   </button>
                 </div>
               </form>
             </div>
-
             <!-- Category Management -->
             <div class="bg-white rounded-xl border border-gray-200 p-6 mb-8 card-shadow">
               <div class="flex justify-between items-center mb-4">
-                <h2 class="text-lg font-semibold text-black">Savings Categories</h2>
-                <button id="settingsBtn" class="px-4 py-2 bg-black hover:bg-gray-900 text-lime rounded-lg transition flex items-center">
+                <h2 class="text-lg font-semibold text-white">Savings Categories</h2>
+                <button id="settingsBtn" class="px-4 py-2 bg-black hover:bg-gray-900 text-lime rounded-lg transition flex items-center btn-bounce">
                   <i class="fas fa-cog mr-2"></i> Manage Categories
                 </button>
               </div>
               
-              <div id="settingsPanel" class="hidden border-t pt-6 mt-6">
-                <h3 class="text-md font-medium text-black mb-4">Add New Category</h3>
+              <div id="settingsPanel" class="border-t pt-6 mt-6 settings-panel">
+                <h3 class="text-md font-medium text-white mb-4">Add New Category</h3>
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                   <div>
                     <label for="newCategory" class="block text-sm font-medium text-gray-700 mb-1">Category Name</label>
@@ -324,26 +435,24 @@
                   </div>
                   
                   <div class="flex items-end">
-                    <button onclick="addCategory()" type="button" class="w-full bg-black hover:bg-gray-900 text-lime py-2 px-4 rounded-lg transition flex items-center justify-center">
+                    <button onclick="addCategory()" type="button" class="w-full bg-black hover:bg-gray-900 text-lime py-2 px-4 rounded-lg transition flex items-center justify-center btn-bounce">
                       <i class="fas fa-plus mr-2"></i> Add Category
                     </button>
                   </div>
                 </div>
                 
-                <h3 class="text-md font-medium text-black mb-4">Existing Categories</h3>
+                <h3 class="text-md font-medium text-white mb-4">Existing Categories</h3>
                 <div id="categoryList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
               </div>
             </div>
-
             <!-- Savings Goals -->
             <div class="mb-8">
-              <h2 class="text-lg font-semibold text-black mb-4">Your Savings Progress</h2>
+              <h2 class="text-lg font-semibold text-white mb-4">Your Savings Progress</h2>
               <div id="savingsList" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
             </div>
-
             <!-- Savings Chart -->
             <div class="bg-white p-4 rounded-xl border border-gray-200 card-shadow">
-              <h3 class="text-lg font-semibold text-black mb-2">Category-wise Savings Progress</h3>
+              <h3 class="text-lg font-semibold text-white mb-2">Category-wise Savings Progress</h3>
               <div class="chart-container">
                 <canvas id="categoryChart"></canvas>
               </div>
@@ -352,7 +461,54 @@
         </div>
       </div>
     </main>
-
+    <!-- Reports Tab -->
+<div id="reportsTab" class="tab-content hidden">
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Monthly Summary Report -->
+    <div class="bg-white p-6 rounded-xl border border-gray-200 card-shadow">
+      <h3 class="text-lg font-semibold text-white mb-4">Monthly Summary</h3>
+      <div class="flex justify-between items-center mb-4">
+        <div class="flex space-x-2">
+          <select id="reportYear" class="px-3 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lime focus:border-lime">
+            <!-- Options will be populated by JS -->
+          </select>
+          <button onclick="generateMonthlyReport()" class="px-3 py-1.5 bg-black text-lime rounded-lg hover:bg-gray-900 transition btn-bounce">
+            Generate
+          </button>
+        </div>
+        <button onclick="exportMonthlyReport()" class="px-3 py-1.5 bg-white border border-lime text-lime rounded-lg hover:bg-gray-50 transition btn-bounce">
+          <i class="fas fa-download mr-1"></i>Export
+        </button>
+      </div>
+      <div class="chart-container">
+        <canvas id="monthlyReportChart"></canvas>
+      </div>
+      <div id="monthlyReportTable" class="mt-4 overflow-x-auto"></div>
+    </div>
+    <!-- Category Breakdown Report -->
+    <div class="bg-white p-6 rounded-xl border border-gray-200 card-shadow">
+      <h3 class="text-lg font-semibold text-white mb-4">Category Breakdown</h3>
+      <div class="flex justify-between items-center mb-4">
+        <div class="flex space-x-2">
+          <select id="categoryReportType" class="px-3 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lime focus:border-lime">
+            <option value="expense">Expenses</option>
+            <option value="income">Income</option>
+          </select>
+          <select id="categoryReportYear" class="px-3 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lime focus:border-lime">
+            <!-- Options will be populated by JS -->
+          </select>
+          <button onclick="generateCategoryReport()" class="px-3 py-1.5 bg-black text-lime rounded-lg hover:bg-gray-900 transition btn-bounce">
+            Generate
+          </button>
+        </div>
+      </div>
+      <div class="chart-container">
+        <canvas id="categoryReportChart"></canvas>
+      </div>
+      <div id="categoryReportTable" class="mt-4 overflow-x-auto"></div>
+    </div>
+  </div>
+</div>
     <!-- Footer -->
     <footer class="bg-black text-white py-8">
       <div class="container mx-auto px-4">
@@ -376,25 +532,27 @@
       </div>
     </footer>
   </div>
-
   <!-- JS Script -->
   <script>
     // Tab functionality
     function showTab(tabId) {
-      document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
+      document.querySelectorAll('.tab-content').forEach(t => {
+        t.classList.add('hidden');
+        t.classList.remove('active');
+      });
+      
       document.getElementById(tabId).classList.remove('hidden');
+      document.getElementById(tabId).classList.add('active');
       
       // Update active tab button
       document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
       event.currentTarget.classList.add('active');
     }
-
     // ---------- Chart Configuration ----------
     Chart.defaults.font.family = 'Inter, sans-serif';
     Chart.defaults.font.weight = 'bold';
-    Chart.defaults.color = '#000000';
-    Chart.defaults.borderColor = '#e5e7eb';
-
+    Chart.defaults.color = '#FFFFFF';
+    Chart.defaults.borderColor = '#333333';
     // ---------- Income/Expense Section ----------
     let records = JSON.parse(localStorage.getItem("records")) || [];
     const incomeEl = document.getElementById("totalIncome");
@@ -403,27 +561,26 @@
     const tableEl = document.getElementById("recordsTable");
     const incomeExpenseCtx = document.getElementById("incomeExpenseChart").getContext("2d");
     let incomeExpenseChart;
-
     function updateTableAndSummary() {
       tableEl.innerHTML = "";
       let income = 0, expense = 0;
       
       records.sort((a, b) => new Date(b.date) - new Date(a.date)).forEach((rec, index) => {
         const row = document.createElement("tr");
-        row.className = "hover:bg-gray-50";
+        row.className = "hover:bg-gray-900";
         row.innerHTML = `
-          <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${rec.date}</td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm ${rec.type === 'income' ? 'text-lime' : 'text-lime'}">
-            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${rec.type === 'income' ? 'bg-lime text-black' : 'bg-lime text-black'}">
+          <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">${rec.date}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm ${rec.type === 'income' ? 'text-lime' : 'text-red-500'}">
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${rec.type === 'income' ? 'bg-lime text-black' : 'bg-red-500 text-white'}">
               ${rec.type === 'income' ? 'Income' : 'Expense'}
             </span>
           </td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${rec.description}</td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm ${rec.type === 'income' ? 'text-lime font-medium' : 'text-lime font-medium'}">
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">${rec.description}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm ${rec.type === 'income' ? 'text-lime font-medium' : 'text-red-500 font-medium'}">
             ${rec.type === 'income' ? '+' : '-'}₹${rec.amount.toFixed(2)}
           </td>
           <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-            <button onclick="deleteRecord(${index})" class="text-lime hover:text-black transition">
+            <button onclick="deleteRecord(${index})" class="text-lime hover:text-white transition">
               <i class="fas fa-trash-alt"></i>
             </button>
           </td>`;
@@ -436,7 +593,6 @@
       balanceEl.textContent = (income - expense).toFixed(2);
       updateIncomeExpenseChart();
     }
-
     function updateIncomeExpenseChart() {
       const monthlyData = groupByMonth(records);
       const labels = Object.keys(monthlyData).sort((a, b) => new Date(a) - new Date(b));
@@ -464,11 +620,11 @@
             { 
               label: 'Expense', 
               data: expenseData, 
-              borderColor: '#EF4444',
-              backgroundColor: '#EF4444',
+              borderColor: '#FF0000',
+              backgroundColor: '#FF0000',
               tension: 0.3,
               borderWidth: 2,
-              pointBackgroundColor: '#EF4444',
+              pointBackgroundColor: '#FF0000',
               pointRadius: 4,
               pointHoverRadius: 6
             }
@@ -477,7 +633,21 @@
         options: getChartOptions()
       });
     }
-
+    document.getElementById("entryForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+      const entry = {
+        date: document.getElementById("date").value,
+        type: document.getElementById("type").value,
+        amount: parseFloat(document.getElementById("amount").value),
+        description: document.getElementById("description").value
+      };
+      records.push(entry);
+      this.reset();
+      updateTableAndSummary();
+      
+      // Show success notification
+      showNotification('Transaction added successfully!', 'success');
+    });
     function deleteRecord(index) {
       if (confirm('Are you sure you want to delete this transaction?')) {
         records.splice(index, 1);
@@ -486,7 +656,6 @@
         showNotification('Transaction deleted successfully!', 'success');
       }
     }
-
     function groupByMonth(data) {
       const summary = {};
       data.forEach(({ date, type, amount }) => {
@@ -496,7 +665,6 @@
       });
       return summary;
     }
-
     // ---------- Savings Section ----------
     let savings = JSON.parse(localStorage.getItem("savings")) || [];
     let categories = JSON.parse(localStorage.getItem("categories")) || [];
@@ -506,7 +674,6 @@
     const settingsPanel = document.getElementById("settingsPanel");
     const categoryCtx = document.getElementById("categoryChart").getContext("2d");
     let categoryChart;
-
     document.getElementById("savingsForm").addEventListener("submit", function(e) {
       e.preventDefault();
       const entry = {
@@ -522,41 +689,39 @@
       renderSavingsSummary();
       showNotification('Savings entry added successfully!', 'success');
     });
-
     function getCategoryTotal(name) {
       return savings
         .filter(e => e.category === name)
         .reduce((sum, e) => e.type === 'deposit' ? sum + e.amount : sum - e.amount, 0);
     }
-
     function renderSavingsSummary() {
       savingsList.innerHTML = '';
-      categories.forEach((cat, catIndex) => {
+      categories.forEach(cat => {
         const total = getCategoryTotal(cat.name);
         const safeTotal = total < 0 ? 0 : total;
         const percent = Math.min(safeTotal / cat.target, 1);
         const percentDisplay = Math.round(percent * 100);
         
-        const statusColor = percent >= 1 ? 'bg-lime' : percent >= 0.7 ? 'bg-yellow' : 'bg-red';
+        const statusColor = percent >= 1 ? '#00FF00' : percent >= 0.7 ? '#CCCCCC' : '#CCCCCC';
         const statusText = percent >= 1 ? 'Achieved!' : percent >= 0.7 ? 'Good progress' : 'Needs attention';
         const statusIcon = percent >= 1 ? 'fas fa-check-circle text-lime' : 
-                          percent >= 0.7 ? 'fas fa-hourglass-half text-yellow' : 'fas fa-exclamation-circle text-red';
+                          percent >= 0.7 ? 'fas fa-hourglass-half text-gray-500' : 'fas fa-exclamation-circle text-gray-500';
         
         const card = document.createElement("div");
         card.className = "bg-white border border-gray-200 rounded-xl p-6 transition-all duration-200 saving-card card-shadow";
         card.innerHTML = `
           <div class="flex justify-between items-start mb-3">
-            <h3 class="text-lg font-semibold text-black">${cat.name}</h3>
+            <h3 class="text-lg font-semibold text-white">${cat.name}</h3>
             <div class="flex items-center space-x-2">
               <i class="${statusIcon}"></i>
-              <span class="text-sm font-medium ${percent >= 1 ? 'text-lime' : percent >= 0.7 ? 'text-yellow' : 'text-red'}">${statusText}</span>
+              <span class="text-sm font-medium ${percent >= 1 ? 'text-lime' : percent >= 0.7 ? 'text-gray-300' : 'text-gray-300'}">${statusText}</span>
             </div>
           </div>
           
           <div class="mb-4">
             <div class="flex justify-between items-center mb-1">
-              <span class="text-sm font-medium text-gray-600">Progress (${percentDisplay}%)</span>
-              <span class="text-sm font-medium ${percent >= 1 ? 'text-lime' : percent >= 0.7 ? 'text-yellow' : 'text-red'}">
+              <span class="text-sm font-medium text-gray-400">Progress (${percentDisplay}%)</span>
+              <span class="text-sm font-medium ${percent >= 1 ? 'text-lime' : percent >= 0.7 ? 'text-gray-300' : 'text-gray-300'}">
                 ₹${safeTotal.toFixed(2)} / ₹${cat.target.toFixed(2)}
               </span>
             </div>
@@ -565,46 +730,38 @@
             </div>
           </div>
           
-          <div class="space-y-2 text-sm text-gray-600">
+          <div class="space-y-2 text-sm text-gray-400">
             ${savings.filter(e => e.category === cat.name).map((entry, i) => `
-              <div class="flex justify-between items-center py-2 border-b border-gray-100 last:border-0">
+              <div class="flex justify-between items-center py-2 border-b border-gray-700 last:border-0">
                 <div>
-                  <span class="font-medium">${entry.date}</span> - ${entry.description}
-                  <span class="${entry.type === 'deposit' ? 'text-lime' : 'text-red'} ml-2">
+                  <span class="font-medium text-white">${entry.date}</span> - ${entry.description}
+                  <span class="${entry.type === 'deposit' ? 'text-lime' : 'text-red-500'} ml-2">
                     ${entry.type === 'deposit' ? '+' : '-'}₹${entry.amount.toFixed(2)}
                   </span>
                 </div>
-                <button onclick="deleteSaving('${cat.name}', ${i})" class="text-lime hover:text-black transition">
+                <button onclick="deleteSaving(${i})" class="text-lime hover:text-white transition">
                   <i class="fas fa-times"></i>
                 </button>
               </div>
             `).join('')}
-          </div>
-          <div class="mt-4">
-            <button onclick="deleteCategory(${catIndex})" class="text-red hover:text-black transition text-sm">
-              <i class="fas fa-trash-alt mr-1"></i> Delete Category
-            </button>
           </div>`;
         savingsList.appendChild(card);
       });
       updateSavingsChart();
     }
-
     function updateSavingsChart() {
       const groupedData = groupByMonthCategory();
       const allMonths = [...new Set(savings.map(s => new Date(s.date).toLocaleString('default', { year: 'numeric', month: 'short' })))].sort((a, b) => new Date(a) - new Date(b));
-      
-      const colors = ['#00FF00', '#3B82F6', '#8B5CF6', '#F59E0B', '#EF4444'];
       
       const datasets = categories.map((cat, i) => {
         return {
           label: cat.name,
           data: allMonths.map(m => groupedData[cat.name]?.[m] || 0),
-          borderColor: colors[i % colors.length],
-          backgroundColor: colors[i % colors.length],
+          borderColor: '#00FF00',
+          backgroundColor: '#00FF00',
           tension: 0.3,
           borderWidth: 2,
-          pointBackgroundColor: colors[i % colors.length],
+          pointBackgroundColor: '#00FF00',
           pointRadius: 4,
           pointHoverRadius: 6,
           fill: true
@@ -622,28 +779,14 @@
         options: getChartOptions()
       });
     }
-
-    function deleteSaving(categoryName, index) {
+    function deleteSaving(index) {
       if (confirm('Are you sure you want to delete this savings entry?')) {
-        // Find the actual index in the savings array
-        const categoryEntries = savings.filter(e => e.category === categoryName);
-        const entryToDelete = categoryEntries[index];
-        const globalIndex = savings.findIndex(e => 
-          e.date === entryToDelete.date && 
-          e.amount === entryToDelete.amount && 
-          e.description === entryToDelete.description && 
-          e.category === entryToDelete.category
-        );
-        
-        if (globalIndex !== -1) {
-          savings.splice(globalIndex, 1);
-          localStorage.setItem("savings", JSON.stringify(savings));
-          renderSavingsSummary();
-          showNotification('Savings entry deleted!', 'success');
-        }
+        savings.splice(index, 1);
+        localStorage.setItem("savings", JSON.stringify(savings));
+        renderSavingsSummary();
+        showNotification('Savings entry deleted!', 'success');
       }
     }
-
     function renderCategoriesInDropdown() {
       sCategory.innerHTML = '';
       categories.forEach(cat => {
@@ -653,7 +796,6 @@
         sCategory.appendChild(opt);
       });
     }
-
     function addCategory() {
       const name = document.getElementById("newCategory").value.trim();
       const target = parseFloat(document.getElementById("targetAmount").value);
@@ -670,7 +812,6 @@
       renderSavingsSummary();
       showNotification('Category added successfully!', 'success');
     }
-
     function renderCategoryList() {
       categoryList.innerHTML = '';
       categories.forEach((cat, i) => {
@@ -678,16 +819,15 @@
         row.className = "bg-white rounded-lg p-4 flex justify-between items-center border border-gray-200";
         row.innerHTML = `
           <div>
-            <h4 class="font-medium text-black">${cat.name}</h4>
-            <p class="text-sm text-gray-600">Target: ₹${cat.target.toFixed(2)}</p>
+            <h4 class="font-medium text-white">${cat.name}</h4>
+            <p class="text-sm text-gray-400">Target: ₹${cat.target.toFixed(2)}</p>
           </div>
-          <button onclick="deleteCategory(${i})" class="text-lime hover:text-black transition p-2">
+          <button onclick="deleteCategory(${i})" class="text-lime hover:text-white transition p-2">
             <i class="fas fa-trash-alt"></i>
           </button>`;
         categoryList.appendChild(row);
       });
     }
-
     function deleteCategory(index) {
       if (confirm('Are you sure? This will also delete all related savings entries.')) {
         const name = categories[index].name;
@@ -701,102 +841,497 @@
         showNotification('Category deleted!', 'success');
       }
     }
-
     function groupByMonthCategory() {
       const grouped = {};
       savings.forEach(({ date, amount, category, type }) => {
         const month = new Date(date).toLocaleString('default', { year: 'numeric', month: 'short' });
         if (!grouped[category]) grouped[category] = {};
         if (!grouped[category][month]) grouped[category][month] = 0;
-        grouped[category][month] += type === 'deposit' ? amount : -amount;
+        grouped[category][month] += type === 'income' ? amount : -amount;
       });
       return grouped;
     }
-
     // Common chart options
-    function getChartOptions() {
+    function getChartOptions(maxY) {
       return { 
-        responsive: true, 
-        maintainAspectRatio: false,
-        plugins: { 
-          legend: { 
-            position: 'top',
-            labels: {
-              boxWidth: 12,
-              padding: 10,
-              font: {
-                size: 12
-              }
-            }
-          },
-          tooltip: {
-            callbacks: {
-              label: function(context) {
-                return context.dataset.label + ': ₹' + context.raw.toFixed(2);
-              }
-            }
-          }
-        },
-        scales: {
-          y: {
-            beginAtZero: true,
-            ticks: {
-              callback: function(value) {
-                return '₹' + value;
-              },
-              font: {
-                size: 11
-              }
-            },
-            grid: {
-              color: '#e5e7eb'
-            }
-          },
-          x: {
-            grid: {
-              display: false
-            },
-            ticks: {
-              font: {
-                size: 11
-              }
-            }
+      responsive: true, 
+      maintainAspectRatio: false,
+      plugins: { 
+        legend: { 
+        position: 'top',
+        labels: {
+          boxWidth: 12,
+          padding: 10,
+          font: {
+          size: 12
           }
         }
+        },
+        tooltip: {
+        callbacks: {
+          label: function(context) {
+          return context.dataset.label + ': ₹' + context.raw.toFixed(2);
+          }
+        }
+        }
+      },
+      scales: {
+        y: {
+        beginAtZero: true,
+        suggestedMin: 0,
+        suggestedMax: maxY,
+        ticks: {
+          callback: function(value) {
+          return '₹' + value;
+          },
+          font: {
+          size: 11
+          }
+        },
+        grid: {
+          color: '#333333'
+        }
+        },
+        x: {
+        grid: {
+          display: false
+        },
+        ticks: {
+          font: {
+          size: 11
+          }
+        }
+        }
+      }
       };
     }
-
+    // Helper: get color for category index
+    function getCategoryColor(index) {
+      // Use a palette of visually distinct colors
+      const palette = [
+      '#00FF00', // lime
+      '#FFB800', // yellow
+      '#FF4F4F', // red
+      '#4F8CFF', // blue
+      '#A259FF', // purple
+      '#FF7F50', // coral
+      '#00C2B8', // teal
+      '#FF69B4', // pink
+      '#FFD700', // gold
+      '#7FFF00', // chartreuse
+      '#00CED1', // dark turquoise
+      '#FF6347', // tomato
+      '#4682B4', // steel blue
+      '#32CD32', // lime green
+      '#8A2BE2', // blue violet
+      ];
+      return palette[index % palette.length];
+    }
+    // Update savings chart with different colors for each category
+    function updateSavingsChart() {
+      const groupedData = groupByMonthCategory();
+      const allMonths = [...new Set(savings.map(s => new Date(s.date).toLocaleString('default', { year: 'numeric', month: 'short' })))].sort((a, b) => new Date(a) - new Date(b));
+      
+      const datasets = categories.map((cat, i) => {
+      const color = getCategoryColor(i);
+      return {
+        label: cat.name,
+        data: allMonths.map(m => groupedData[cat.name]?.[m] || 0),
+        borderColor: color,
+        backgroundColor: color + '33', // semi-transparent fill
+        tension: 0.3,
+        borderWidth: 2,
+        pointBackgroundColor: color,
+        pointRadius: 4,
+        pointHoverRadius: 6,
+        fill: true
+      };
+      });
+      // Find the highest price (max value) among all datasets
+      let maxY = 0;
+      let minY = 0;
+      datasets.forEach(ds => {
+        ds.data.forEach(val => {
+          if (val > maxY) maxY = val;
+          if (val < minY) minY = val;
+        });
+      });
+      // Ensure minY is not below 0
+      minY = 0;
+      // Optionally, add a little padding to the top
+      maxY = Math.ceil(maxY * 1.1);
+      if (categoryChart) categoryChart.destroy();
+      
+      categoryChart = new Chart(categoryCtx, {
+      type: 'line',
+      data: { 
+        labels: allMonths, 
+        datasets 
+      },
+      options: getChartOptions(maxY)
+      });
+    }
     // Toggle settings panel
     document.getElementById("settingsBtn").addEventListener("click", () => {
-      settingsPanel.classList.toggle("hidden");
+      settingsPanel.classList.toggle("show");
     });
-
     // Notification function
     function showNotification(message, type) {
       const notification = document.createElement('div');
-      notification.className = `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg text-white font-medium ${
-        type === 'success' ? 'bg-lime' : 'bg-red'
-      } transition transform duration-300 translate-x-0 opacity-100`;
+      notification.className = `notification ${type === 'success' ? 'bg-lime' : 'bg-black'}`;
       notification.textContent = message;
       document.body.appendChild(notification);
       
       setTimeout(() => {
-        notification.classList.add('translate-x-full', 'opacity-0');
+        notification.classList.add('show');
+      }, 100);
+      
+      setTimeout(() => {
+        notification.classList.remove('show');
         setTimeout(() => notification.remove(), 300);
       }, 3000);
     }
-
     // Make charts responsive to window resize
     window.addEventListener('resize', function() {
       if (incomeExpenseChart) incomeExpenseChart.resize();
       if (categoryChart) categoryChart.resize();
     });
-
     // Initial load
     renderCategoriesInDropdown();
     renderCategoryList();
     renderSavingsSummary();
     updateTableAndSummary();
+    
+// Add these variables with your other chart variables
+const monthlyReportCtx = document.getElementById('monthlyReportChart').getContext('2d');
+const categoryReportCtx = document.getElementById('categoryReportChart').getContext('2d');
+let monthlyReportChart, categoryReportChart;
+
+// Initialize reports when page loads
+function initializeReports() {
+  populateYearDropdowns();
+}
+
+function populateYearDropdowns() {
+  const years = new Set();
+  const now = new Date();
+  
+  // Get years from transactions
+  records.forEach(record => {
+    const year = new Date(record.date).getFullYear();
+    years.add(year);
+  });
+  
+  // Get years from savings
+  savings.forEach(entry => {
+    const year = new Date(entry.date).getFullYear();
+    years.add(year);
+  });
+  
+  // Add current year if empty
+  if (years.size === 0) {
+    years.add(now.getFullYear());
+  }
+  
+  // Convert to array and sort
+  const sortedYears = Array.from(years).sort((a, b) => b - a);
+  
+  // Populate dropdowns
+  const yearSelect = document.getElementById('reportYear');
+  const categoryYearSelect = document.getElementById('categoryReportYear');
+  
+  yearSelect.innerHTML = '';
+  categoryYearSelect.innerHTML = '';
+  
+  sortedYears.forEach(year => {
+    const option = document.createElement('option');
+    option.value = year;
+    option.textContent = year;
+    yearSelect.appendChild(option.cloneNode(true));
+    categoryYearSelect.appendChild(option);
+  });
+  
+  // Set current year as default
+  yearSelect.value = now.getFullYear();
+  categoryYearSelect.value = now.getFullYear();
+}
+
+function generateMonthlyReport() {
+  const year = parseInt(document.getElementById('reportYear').value);
+  const monthlyData = {};
+  
+  // Initialize all months
+  for (let month = 0; month < 12; month++) {
+    monthlyData[month] = { income: 0, expense: 0, savings: 0 };
+  }
+  
+  // Process transactions
+  records.forEach(record => {
+    const recordDate = new Date(record.date);
+    if (recordDate.getFullYear() === year) {
+      const month = recordDate.getMonth();
+      if (record.type === 'income') {
+        monthlyData[month].income += record.amount;
+      } else {
+        monthlyData[month].expense += record.amount;
+      }
+    }
+  });
+  
+  // Process savings
+  savings.forEach(entry => {
+    const entryDate = new Date(entry.date);
+    if (entryDate.getFullYear() === year) {
+      const month = entryDate.getMonth();
+      if (entry.type === 'deposit') {
+        monthlyData[month].savings += entry.amount;
+      } else {
+        monthlyData[month].savings -= entry.amount;
+      }
+    }
+  });
+  
+  // Prepare chart data
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const incomeData = [];
+  const expenseData = [];
+  const savingsData = [];
+  
+  for (let month = 0; month < 12; month++) {
+    incomeData.push(monthlyData[month].income);
+    expenseData.push(monthlyData[month].expense);
+    savingsData.push(monthlyData[month].savings);
+  }
+  
+  // Update chart
+  if (monthlyReportChart) monthlyReportChart.destroy();
+  
+  monthlyReportChart = new Chart(monthlyReportCtx, {
+    type: 'bar',
+    data: {
+      labels: months,
+      datasets: [
+        {
+          label: 'Income',
+          data: incomeData,
+          backgroundColor: '#00FF00',
+          borderColor: '#00FF00',
+          borderWidth: 1
+        },
+        {
+          label: 'Expenses',
+          data: expenseData,
+          backgroundColor: '#EF4444',
+          borderColor: '#EF4444',
+          borderWidth: 1
+        },
+        {
+          label: 'Savings',
+          data: savingsData,
+          backgroundColor: '#3B82F6',
+          borderColor: '#3B82F6',
+          borderWidth: 1
+        }
+      ]
+    },
+    options: {
+      ...getChartOptions(),
+      scales: {
+        ...getChartOptions().scales,
+        x: {
+          stacked: false,
+          grid: {
+            display: false
+          }
+        },
+        y: {
+          stacked: false,
+          beginAtZero: true
+        }
+      }
+    }
+  });
+  
+  // Generate HTML table
+  let tableHTML = `
+    <table class="min-w-full divide-y divide-gray-200">
+      <thead class="bg-gray-50">
+        <tr>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Month</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Income</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Expenses</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Savings</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Net</th>
+        </tr>
+      </thead>
+      <tbody class="bg-white divide-y divide-gray-200">
+  `;
+  
+  for (let month = 0; month < 12; month++) {
+    const net = monthlyData[month].income - monthlyData[month].expense;
+    tableHTML += `
+      <tr>
+        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${months[month]}</td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-lime">₹${monthlyData[month].income.toFixed(2)}</td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-lime">₹${monthlyData[month].expense.toFixed(2)}</td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-blue-500">₹${monthlyData[month].savings.toFixed(2)}</td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium ${net >= 0 ? 'text-lime' : 'text-lime'}">₹${net.toFixed(2)}</td>
+      </tr>
+    `;
+  }
+  
+  tableHTML += `
+      </tbody>
+    </table>
+  `;
+  
+  document.getElementById('monthlyReportTable').innerHTML = tableHTML;
+}
+
+function generateCategoryReport() {
+  const year = parseInt(document.getElementById('categoryReportYear').value);
+  const reportType = document.getElementById('categoryReportType').value;
+  
+  const categoryData = {};
+  
+  if (reportType === 'expense') {
+    // Process expense categories
+    records.forEach(record => {
+      if (record.type === 'expense') {
+        const recordDate = new Date(record.date);
+        if (recordDate.getFullYear() === year) {
+          // Simple categorization by first word of description
+          // In a real app, you'd want proper categories
+          const category = record.description.split(' ')[0] || 'Other';
+          categoryData[category] = (categoryData[category] || 0) + record.amount;
+        }
+      }
+    });
+  } else {
+    // Process income categories
+    records.forEach(record => {
+      if (record.type === 'income') {
+        const recordDate = new Date(record.date);
+        if (recordDate.getFullYear() === year) {
+          const category = record.description.split(' ')[0] || 'Other';
+          categoryData[category] = (categoryData[category] || 0) + record.amount;
+        }
+      }
+    });
+  }
+  
+  // Sort categories by amount
+  const sortedCategories = Object.entries(categoryData)
+    .sort((a, b) => b[1] - a[1]);
+  
+  // Prepare chart data
+  const labels = sortedCategories.map(item => item[0]);
+  const data = sortedCategories.map(item => item[1]);
+  
+  // Update chart
+  if (categoryReportChart) categoryReportChart.destroy();
+  
+  categoryReportChart = new Chart(categoryReportCtx, {
+    type: 'doughnut',
+    data: {
+      labels: labels,
+      datasets: [{
+        data: data,
+        backgroundColor: labels.map((_, i) => getCategoryColor(i)),
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'right',
+          labels: {
+            boxWidth: 12,
+            padding: 10,
+            font: {
+              size: 12
+            }
+          }
+        },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              return `${context.label}: ₹${context.raw.toFixed(2)} (${((context.raw / context.dataset.data.reduce((a, b) => a + b, 0)) * 100).toFixed(1)}%)`;
+            }
+          }
+        }
+      },
+      cutout: '70%'
+    }
+  });
+  
+  // Generate HTML table
+  let tableHTML = `
+    <table class="min-w-full divide-y divide-gray-200">
+      <thead class="bg-gray-50">
+        <tr>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Category</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Amount</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Percentage</th>
+        </tr>
+      </thead>
+      <tbody class="bg-white divide-y divide-gray-200">
+  `;
+  
+  const total = data.reduce((sum, amount) => sum + amount, 0);
+  
+  sortedCategories.forEach(([category, amount]) => {
+    const percentage = (amount / total * 100).toFixed(1);
+    tableHTML += `
+      <tr>
+        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${category}</td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm ${reportType === 'expense' ? 'text-lime' : 'text-lime'}">₹${amount.toFixed(2)}</td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${percentage}%</td>
+      </tr>
+    `;
+  });
+  
+  tableHTML += `
+      </tbody>
+    </table>
+  `;
+  
+  document.getElementById('categoryReportTable').innerHTML = tableHTML;
+}
+
+function exportMonthlyReport() {
+  const year = document.getElementById('reportYear').value;
+  const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  
+  let csv = 'Month,Income,Expenses,Savings,Net\n';
+  
+  // Get all data points from the chart
+  const incomeData = monthlyReportChart.data.datasets[0].data;
+  const expenseData = monthlyReportChart.data.datasets[1].data;
+  const savingsData = monthlyReportChart.data.datasets[2].data;
+  
+  for (let month = 0; month < 12; month++) {
+    const net = incomeData[month] - expenseData[month];
+    csv += `${months[month]},${incomeData[month].toFixed(2)},${expenseData[month].toFixed(2)},${savingsData[month].toFixed(2)},${net.toFixed(2)}\n`;
+  }
+  
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `monthly-report-${year}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  
+  showNotification('Monthly report exported!', 'success');
+}
+
+// In your initialization code (where you call other init functions)
+initializeReports();
   </script>
 </body>
 </html>
