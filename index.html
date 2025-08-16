@@ -548,11 +548,13 @@
       document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
       event.currentTarget.classList.add('active');
     }
+    
     // ---------- Chart Configuration ----------
     Chart.defaults.font.family = 'Inter, sans-serif';
     Chart.defaults.font.weight = 'bold';
     Chart.defaults.color = '#FFFFFF';
     Chart.defaults.borderColor = '#333333';
+    
     // ---------- Income/Expense Section ----------
     let records = JSON.parse(localStorage.getItem("records")) || [];
     const incomeEl = document.getElementById("totalIncome");
@@ -561,6 +563,25 @@
     const tableEl = document.getElementById("recordsTable");
     const incomeExpenseCtx = document.getElementById("incomeExpenseChart").getContext("2d");
     let incomeExpenseChart;
+    
+    // Load form data from localStorage if available
+    const savedFormData = JSON.parse(localStorage.getItem("entryFormData")) || {};
+    document.getElementById("date").value = savedFormData.date || "";
+    document.getElementById("type").value = savedFormData.type || "income";
+    document.getElementById("amount").value = savedFormData.amount || "";
+    document.getElementById("description").value = savedFormData.description || "";
+    
+    // Save form data to localStorage when inputs change
+    document.getElementById("entryForm").addEventListener("input", function(e) {
+      const formData = {
+        date: document.getElementById("date").value,
+        type: document.getElementById("type").value,
+        amount: document.getElementById("amount").value,
+        description: document.getElementById("description").value
+      };
+      localStorage.setItem("entryFormData", JSON.stringify(formData));
+    });
+    
     function updateTableAndSummary() {
       tableEl.innerHTML = "";
       let income = 0, expense = 0;
@@ -592,7 +613,11 @@
       expenseEl.textContent = expense.toFixed(2);
       balanceEl.textContent = (income - expense).toFixed(2);
       updateIncomeExpenseChart();
+      
+      // Save records to localStorage
+      localStorage.setItem("records", JSON.stringify(records));
     }
+    
     function updateIncomeExpenseChart() {
       const monthlyData = groupByMonth(records);
       const labels = Object.keys(monthlyData).sort((a, b) => new Date(a) - new Date(b));
@@ -633,6 +658,7 @@
         options: getChartOptions()
       });
     }
+    
     document.getElementById("entryForm").addEventListener("submit", function (e) {
       e.preventDefault();
       const entry = {
@@ -642,12 +668,17 @@
         description: document.getElementById("description").value
       };
       records.push(entry);
+      localStorage.setItem("records", JSON.stringify(records));
       this.reset();
       updateTableAndSummary();
+      
+      // Clear saved form data
+      localStorage.removeItem("entryFormData");
       
       // Show success notification
       showNotification('Transaction added successfully!', 'success');
     });
+    
     function deleteRecord(index) {
       if (confirm('Are you sure you want to delete this transaction?')) {
         records.splice(index, 1);
@@ -656,6 +687,7 @@
         showNotification('Transaction deleted successfully!', 'success');
       }
     }
+    
     function groupByMonth(data) {
       const summary = {};
       data.forEach(({ date, type, amount }) => {
@@ -665,6 +697,7 @@
       });
       return summary;
     }
+    
     // ---------- Savings Section ----------
     let savings = JSON.parse(localStorage.getItem("savings")) || [];
     let categories = JSON.parse(localStorage.getItem("categories")) || [];
@@ -674,6 +707,25 @@
     const settingsPanel = document.getElementById("settingsPanel");
     const categoryCtx = document.getElementById("categoryChart").getContext("2d");
     let categoryChart;
+    
+    // Load savings form data from localStorage if available
+    const savedSavingsFormData = JSON.parse(localStorage.getItem("savingsFormData")) || {};
+    document.getElementById("sDate").value = savedSavingsFormData.sDate || "";
+    document.getElementById("sType").value = savedSavingsFormData.sType || "deposit";
+    document.getElementById("sAmount").value = savedSavingsFormData.sAmount || "";
+    document.getElementById("sDesc").value = savedSavingsFormData.sDesc || "";
+    
+    // Save savings form data to localStorage when inputs change
+    document.getElementById("savingsForm").addEventListener("input", function(e) {
+      const formData = {
+        sDate: document.getElementById("sDate").value,
+        sType: document.getElementById("sType").value,
+        sAmount: document.getElementById("sAmount").value,
+        sDesc: document.getElementById("sDesc").value
+      };
+      localStorage.setItem("savingsFormData", JSON.stringify(formData));
+    });
+    
     document.getElementById("savingsForm").addEventListener("submit", function(e) {
       e.preventDefault();
       const entry = {
@@ -687,13 +739,19 @@
       localStorage.setItem("savings", JSON.stringify(savings));
       this.reset();
       renderSavingsSummary();
+      
+      // Clear saved form data
+      localStorage.removeItem("savingsFormData");
+      
       showNotification('Savings entry added successfully!', 'success');
     });
+    
     function getCategoryTotal(name) {
       return savings
         .filter(e => e.category === name)
         .reduce((sum, e) => e.type === 'deposit' ? sum + e.amount : sum - e.amount, 0);
     }
+    
     function renderSavingsSummary() {
       savingsList.innerHTML = '';
       categories.forEach(cat => {
@@ -749,24 +807,41 @@
       });
       updateSavingsChart();
     }
+    
     function updateSavingsChart() {
       const groupedData = groupByMonthCategory();
       const allMonths = [...new Set(savings.map(s => new Date(s.date).toLocaleString('default', { year: 'numeric', month: 'short' })))].sort((a, b) => new Date(a) - new Date(b));
       
       const datasets = categories.map((cat, i) => {
+        const color = getCategoryColor(i);
         return {
           label: cat.name,
           data: allMonths.map(m => groupedData[cat.name]?.[m] || 0),
-          borderColor: '#00FF00',
-          backgroundColor: '#00FF00',
+          borderColor: color,
+          backgroundColor: color + '33', // semi-transparent fill
           tension: 0.3,
           borderWidth: 2,
-          pointBackgroundColor: '#00FF00',
+          pointBackgroundColor: color,
           pointRadius: 4,
           pointHoverRadius: 6,
           fill: true
         };
       });
+      
+      // Find the highest price (max value) among all datasets
+      let maxY = 0;
+      let minY = 0;
+      datasets.forEach(ds => {
+        ds.data.forEach(val => {
+          if (val > maxY) maxY = val;
+          if (val < minY) minY = val;
+        });
+      });
+      
+      // Ensure minY is not below 0
+      minY = 0;
+      // Optionally, add a little padding to the top
+      maxY = Math.ceil(maxY * 1.1);
       
       if (categoryChart) categoryChart.destroy();
       
@@ -776,9 +851,10 @@
           labels: allMonths, 
           datasets 
         },
-        options: getChartOptions()
+        options: getChartOptions(maxY)
       });
     }
+    
     function deleteSaving(index) {
       if (confirm('Are you sure you want to delete this savings entry?')) {
         savings.splice(index, 1);
@@ -787,6 +863,7 @@
         showNotification('Savings entry deleted!', 'success');
       }
     }
+    
     function renderCategoriesInDropdown() {
       sCategory.innerHTML = '';
       categories.forEach(cat => {
@@ -796,6 +873,7 @@
         sCategory.appendChild(opt);
       });
     }
+    
     function addCategory() {
       const name = document.getElementById("newCategory").value.trim();
       const target = parseFloat(document.getElementById("targetAmount").value);
@@ -812,6 +890,7 @@
       renderSavingsSummary();
       showNotification('Category added successfully!', 'success');
     }
+    
     function renderCategoryList() {
       categoryList.innerHTML = '';
       categories.forEach((cat, i) => {
@@ -828,6 +907,7 @@
         categoryList.appendChild(row);
       });
     }
+    
     function deleteCategory(index) {
       if (confirm('Are you sure? This will also delete all related savings entries.')) {
         const name = categories[index].name;
@@ -841,6 +921,7 @@
         showNotification('Category deleted!', 'success');
       }
     }
+    
     function groupByMonthCategory() {
       const grouped = {};
       savings.forEach(({ date, amount, category, type }) => {
@@ -851,130 +932,90 @@
       });
       return grouped;
     }
+    
     // Common chart options
     function getChartOptions(maxY) {
       return { 
-      responsive: true, 
-      maintainAspectRatio: false,
-      plugins: { 
-        legend: { 
-        position: 'top',
-        labels: {
-          boxWidth: 12,
-          padding: 10,
-          font: {
-          size: 12
-          }
-        }
-        },
-        tooltip: {
-        callbacks: {
-          label: function(context) {
-          return context.dataset.label + ': ₹' + context.raw.toFixed(2);
-          }
-        }
-        }
-      },
-      scales: {
-        y: {
-        beginAtZero: true,
-        suggestedMin: 0,
-        suggestedMax: maxY,
-        ticks: {
-          callback: function(value) {
-          return '₹' + value;
+        responsive: true, 
+        maintainAspectRatio: false,
+        plugins: { 
+          legend: { 
+            position: 'top',
+            labels: {
+              boxWidth: 12,
+              padding: 10,
+              font: {
+                size: 12
+              }
+            }
           },
-          font: {
-          size: 11
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                return context.dataset.label + ': ₹' + context.raw.toFixed(2);
+              }
+            }
           }
         },
-        grid: {
-          color: '#333333'
-        }
-        },
-        x: {
-        grid: {
-          display: false
-        },
-        ticks: {
-          font: {
-          size: 11
+        scales: {
+          y: {
+            beginAtZero: true,
+            suggestedMin: 0,
+            suggestedMax: maxY,
+            ticks: {
+              callback: function(value) {
+                return '₹' + value;
+              },
+              font: {
+                size: 11
+              }
+            },
+            grid: {
+              color: '#333333'
+            }
+          },
+          x: {
+            grid: {
+              display: false
+            },
+            ticks: {
+              font: {
+                size: 11
+              }
+            }
           }
         }
-        }
-      }
       };
     }
+    
     // Helper: get color for category index
     function getCategoryColor(index) {
       // Use a palette of visually distinct colors
       const palette = [
-      '#00FF00', // lime
-      '#FFB800', // yellow
-      '#FF4F4F', // red
-      '#4F8CFF', // blue
-      '#A259FF', // purple
-      '#FF7F50', // coral
-      '#00C2B8', // teal
-      '#FF69B4', // pink
-      '#FFD700', // gold
-      '#7FFF00', // chartreuse
-      '#00CED1', // dark turquoise
-      '#FF6347', // tomato
-      '#4682B4', // steel blue
-      '#32CD32', // lime green
-      '#8A2BE2', // blue violet
+        '#00FF00', // lime
+        '#FFB800', // yellow
+        '#FF4F4F', // red
+        '#4F8CFF', // blue
+        '#A259FF', // purple
+        '#FF7F50', // coral
+        '#00C2B8', // teal
+        '#FF69B4', // pink
+        '#FFD700', // gold
+        '#7FFF00', // chartreuse
+        '#00CED1', // dark turquoise
+        '#FF6347', // tomato
+        '#4682B4', // steel blue
+        '#32CD32', // lime green
+        '#8A2BE2', // blue violet
       ];
       return palette[index % palette.length];
     }
-    // Update savings chart with different colors for each category
-    function updateSavingsChart() {
-      const groupedData = groupByMonthCategory();
-      const allMonths = [...new Set(savings.map(s => new Date(s.date).toLocaleString('default', { year: 'numeric', month: 'short' })))].sort((a, b) => new Date(a) - new Date(b));
-      
-      const datasets = categories.map((cat, i) => {
-      const color = getCategoryColor(i);
-      return {
-        label: cat.name,
-        data: allMonths.map(m => groupedData[cat.name]?.[m] || 0),
-        borderColor: color,
-        backgroundColor: color + '33', // semi-transparent fill
-        tension: 0.3,
-        borderWidth: 2,
-        pointBackgroundColor: color,
-        pointRadius: 4,
-        pointHoverRadius: 6,
-        fill: true
-      };
-      });
-      // Find the highest price (max value) among all datasets
-      let maxY = 0;
-      let minY = 0;
-      datasets.forEach(ds => {
-        ds.data.forEach(val => {
-          if (val > maxY) maxY = val;
-          if (val < minY) minY = val;
-        });
-      });
-      // Ensure minY is not below 0
-      minY = 0;
-      // Optionally, add a little padding to the top
-      maxY = Math.ceil(maxY * 1.1);
-      if (categoryChart) categoryChart.destroy();
-      
-      categoryChart = new Chart(categoryCtx, {
-      type: 'line',
-      data: { 
-        labels: allMonths, 
-        datasets 
-      },
-      options: getChartOptions(maxY)
-      });
-    }
+    
     // Toggle settings panel
     document.getElementById("settingsBtn").addEventListener("click", () => {
       settingsPanel.classList.toggle("show");
     });
+    
     // Notification function
     function showNotification(message, type) {
       const notification = document.createElement('div');
@@ -991,347 +1032,347 @@
         setTimeout(() => notification.remove(), 300);
       }, 3000);
     }
+    
     // Make charts responsive to window resize
     window.addEventListener('resize', function() {
       if (incomeExpenseChart) incomeExpenseChart.resize();
       if (categoryChart) categoryChart.resize();
     });
+    
+    // Add these variables with your other chart variables
+    const monthlyReportCtx = document.getElementById('monthlyReportChart').getContext('2d');
+    const categoryReportCtx = document.getElementById('categoryReportChart').getContext('2d');
+    let monthlyReportChart, categoryReportChart;
+    
+    // Initialize reports when page loads
+    function initializeReports() {
+      populateYearDropdowns();
+    }
+    
+    function populateYearDropdowns() {
+      const years = new Set();
+      const now = new Date();
+      
+      // Get years from transactions
+      records.forEach(record => {
+        const year = new Date(record.date).getFullYear();
+        years.add(year);
+      });
+      
+      // Get years from savings
+      savings.forEach(entry => {
+        const year = new Date(entry.date).getFullYear();
+        years.add(year);
+      });
+      
+      // Add current year if empty
+      if (years.size === 0) {
+        years.add(now.getFullYear());
+      }
+      
+      // Convert to array and sort
+      const sortedYears = Array.from(years).sort((a, b) => b - a);
+      
+      // Populate dropdowns
+      const yearSelect = document.getElementById('reportYear');
+      const categoryYearSelect = document.getElementById('categoryReportYear');
+      
+      yearSelect.innerHTML = '';
+      categoryYearSelect.innerHTML = '';
+      
+      sortedYears.forEach(year => {
+        const option = document.createElement('option');
+        option.value = year;
+        option.textContent = year;
+        yearSelect.appendChild(option.cloneNode(true));
+        categoryYearSelect.appendChild(option);
+      });
+      
+      // Set current year as default
+      yearSelect.value = now.getFullYear();
+      categoryYearSelect.value = now.getFullYear();
+    }
+    
+    function generateMonthlyReport() {
+      const year = parseInt(document.getElementById('reportYear').value);
+      const monthlyData = {};
+      
+      // Initialize all months
+      for (let month = 0; month < 12; month++) {
+        monthlyData[month] = { income: 0, expense: 0, savings: 0 };
+      }
+      
+      // Process transactions
+      records.forEach(record => {
+        const recordDate = new Date(record.date);
+        if (recordDate.getFullYear() === year) {
+          const month = recordDate.getMonth();
+          if (record.type === 'income') {
+            monthlyData[month].income += record.amount;
+          } else {
+            monthlyData[month].expense += record.amount;
+          }
+        }
+      });
+      
+      // Process savings
+      savings.forEach(entry => {
+        const entryDate = new Date(entry.date);
+        if (entryDate.getFullYear() === year) {
+          const month = entryDate.getMonth();
+          if (entry.type === 'deposit') {
+            monthlyData[month].savings += entry.amount;
+          } else {
+            monthlyData[month].savings -= entry.amount;
+          }
+        }
+      });
+      
+      // Prepare chart data
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const incomeData = [];
+      const expenseData = [];
+      const savingsData = [];
+      
+      for (let month = 0; month < 12; month++) {
+        incomeData.push(monthlyData[month].income);
+        expenseData.push(monthlyData[month].expense);
+        savingsData.push(monthlyData[month].savings);
+      }
+      
+      // Update chart
+      if (monthlyReportChart) monthlyReportChart.destroy();
+      
+      monthlyReportChart = new Chart(monthlyReportCtx, {
+        type: 'bar',
+        data: {
+          labels: months,
+          datasets: [
+            {
+              label: 'Income',
+              data: incomeData,
+              backgroundColor: '#00FF00',
+              borderColor: '#00FF00',
+              borderWidth: 1
+            },
+            {
+              label: 'Expenses',
+              data: expenseData,
+              backgroundColor: '#EF4444',
+              borderColor: '#EF4444',
+              borderWidth: 1
+            },
+            {
+              label: 'Savings',
+              data: savingsData,
+              backgroundColor: '#3B82F6',
+              borderColor: '#3B82F6',
+              borderWidth: 1
+            }
+          ]
+        },
+        options: {
+          ...getChartOptions(),
+          scales: {
+            ...getChartOptions().scales,
+            x: {
+              stacked: false,
+              grid: {
+                display: false
+              }
+            },
+            y: {
+              stacked: false,
+              beginAtZero: true
+            }
+          }
+        }
+      });
+      
+      // Generate HTML table
+      let tableHTML = `
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Month</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Income</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Expenses</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Savings</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Net</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+      `;
+      
+      for (let month = 0; month < 12; month++) {
+        const net = monthlyData[month].income - monthlyData[month].expense;
+        tableHTML += `
+          <tr>
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${months[month]}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-lime">₹${monthlyData[month].income.toFixed(2)}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-lime">₹${monthlyData[month].expense.toFixed(2)}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-blue-500">₹${monthlyData[month].savings.toFixed(2)}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium ${net >= 0 ? 'text-lime' : 'text-lime'}">₹${net.toFixed(2)}</td>
+          </tr>
+        `;
+      }
+      
+      tableHTML += `
+          </tbody>
+        </table>
+      `;
+      
+      document.getElementById('monthlyReportTable').innerHTML = tableHTML;
+    }
+    
+    function generateCategoryReport() {
+      const year = parseInt(document.getElementById('categoryReportYear').value);
+      const reportType = document.getElementById('categoryReportType').value;
+      
+      const categoryData = {};
+      
+      if (reportType === 'expense') {
+        // Process expense categories
+        records.forEach(record => {
+          if (record.type === 'expense') {
+            const recordDate = new Date(record.date);
+            if (recordDate.getFullYear() === year) {
+              // Simple categorization by first word of description
+              // In a real app, you'd want proper categories
+              const category = record.description.split(' ')[0] || 'Other';
+              categoryData[category] = (categoryData[category] || 0) + record.amount;
+            }
+          }
+        });
+      } else {
+        // Process income categories
+        records.forEach(record => {
+          if (record.type === 'income') {
+            const recordDate = new Date(record.date);
+            if (recordDate.getFullYear() === year) {
+              const category = record.description.split(' ')[0] || 'Other';
+              categoryData[category] = (categoryData[category] || 0) + record.amount;
+            }
+          }
+        });
+      }
+      
+      // Sort categories by amount
+      const sortedCategories = Object.entries(categoryData)
+        .sort((a, b) => b[1] - a[1]);
+      
+      // Prepare chart data
+      const labels = sortedCategories.map(item => item[0]);
+      const data = sortedCategories.map(item => item[1]);
+      
+      // Update chart
+      if (categoryReportChart) categoryReportChart.destroy();
+      
+      categoryReportChart = new Chart(categoryReportCtx, {
+        type: 'doughnut',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: data,
+            backgroundColor: labels.map((_, i) => getCategoryColor(i)),
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'right',
+              labels: {
+                boxWidth: 12,
+                padding: 10,
+                font: {
+                  size: 12
+                }
+              }
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return `${context.label}: ₹${context.raw.toFixed(2)} (${((context.raw / context.dataset.data.reduce((a, b) => a + b, 0)) * 100).toFixed(1)}%)`;
+                }
+              }
+            }
+          },
+          cutout: '70%'
+        }
+      });
+      
+      // Generate HTML table
+      let tableHTML = `
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Category</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Amount</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Percentage</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+      `;
+      
+      const total = data.reduce((sum, amount) => sum + amount, 0);
+      
+      sortedCategories.forEach(([category, amount]) => {
+        const percentage = (amount / total * 100).toFixed(1);
+        tableHTML += `
+          <tr>
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${category}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm ${reportType === 'expense' ? 'text-lime' : 'text-lime'}">₹${amount.toFixed(2)}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${percentage}%</td>
+          </tr>
+        `;
+      });
+      
+      tableHTML += `
+          </tbody>
+        </table>
+      `;
+      
+      document.getElementById('categoryReportTable').innerHTML = tableHTML;
+    }
+    
+    function exportMonthlyReport() {
+      const year = document.getElementById('reportYear').value;
+      const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+      
+      let csv = 'Month,Income,Expenses,Savings,Net\n';
+      
+      // Get all data points from the chart
+      const incomeData = monthlyReportChart.data.datasets[0].data;
+      const expenseData = monthlyReportChart.data.datasets[1].data;
+      const savingsData = monthlyReportChart.data.datasets[2].data;
+      
+      for (let month = 0; month < 12; month++) {
+        const net = incomeData[month] - expenseData[month];
+        csv += `${months[month]},${incomeData[month].toFixed(2)},${expenseData[month].toFixed(2)},${savingsData[month].toFixed(2)},${net.toFixed(2)}\n`;
+      }
+      
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `monthly-report-${year}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      showNotification('Monthly report exported!', 'success');
+    }
+    
     // Initial load
+    initializeReports();
     renderCategoriesInDropdown();
     renderCategoryList();
     renderSavingsSummary();
     updateTableAndSummary();
-    
-// Add these variables with your other chart variables
-const monthlyReportCtx = document.getElementById('monthlyReportChart').getContext('2d');
-const categoryReportCtx = document.getElementById('categoryReportChart').getContext('2d');
-let monthlyReportChart, categoryReportChart;
-
-// Initialize reports when page loads
-function initializeReports() {
-  populateYearDropdowns();
-}
-
-function populateYearDropdowns() {
-  const years = new Set();
-  const now = new Date();
-  
-  // Get years from transactions
-  records.forEach(record => {
-    const year = new Date(record.date).getFullYear();
-    years.add(year);
-  });
-  
-  // Get years from savings
-  savings.forEach(entry => {
-    const year = new Date(entry.date).getFullYear();
-    years.add(year);
-  });
-  
-  // Add current year if empty
-  if (years.size === 0) {
-    years.add(now.getFullYear());
-  }
-  
-  // Convert to array and sort
-  const sortedYears = Array.from(years).sort((a, b) => b - a);
-  
-  // Populate dropdowns
-  const yearSelect = document.getElementById('reportYear');
-  const categoryYearSelect = document.getElementById('categoryReportYear');
-  
-  yearSelect.innerHTML = '';
-  categoryYearSelect.innerHTML = '';
-  
-  sortedYears.forEach(year => {
-    const option = document.createElement('option');
-    option.value = year;
-    option.textContent = year;
-    yearSelect.appendChild(option.cloneNode(true));
-    categoryYearSelect.appendChild(option);
-  });
-  
-  // Set current year as default
-  yearSelect.value = now.getFullYear();
-  categoryYearSelect.value = now.getFullYear();
-}
-
-function generateMonthlyReport() {
-  const year = parseInt(document.getElementById('reportYear').value);
-  const monthlyData = {};
-  
-  // Initialize all months
-  for (let month = 0; month < 12; month++) {
-    monthlyData[month] = { income: 0, expense: 0, savings: 0 };
-  }
-  
-  // Process transactions
-  records.forEach(record => {
-    const recordDate = new Date(record.date);
-    if (recordDate.getFullYear() === year) {
-      const month = recordDate.getMonth();
-      if (record.type === 'income') {
-        monthlyData[month].income += record.amount;
-      } else {
-        monthlyData[month].expense += record.amount;
-      }
-    }
-  });
-  
-  // Process savings
-  savings.forEach(entry => {
-    const entryDate = new Date(entry.date);
-    if (entryDate.getFullYear() === year) {
-      const month = entryDate.getMonth();
-      if (entry.type === 'deposit') {
-        monthlyData[month].savings += entry.amount;
-      } else {
-        monthlyData[month].savings -= entry.amount;
-      }
-    }
-  });
-  
-  // Prepare chart data
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  const incomeData = [];
-  const expenseData = [];
-  const savingsData = [];
-  
-  for (let month = 0; month < 12; month++) {
-    incomeData.push(monthlyData[month].income);
-    expenseData.push(monthlyData[month].expense);
-    savingsData.push(monthlyData[month].savings);
-  }
-  
-  // Update chart
-  if (monthlyReportChart) monthlyReportChart.destroy();
-  
-  monthlyReportChart = new Chart(monthlyReportCtx, {
-    type: 'bar',
-    data: {
-      labels: months,
-      datasets: [
-        {
-          label: 'Income',
-          data: incomeData,
-          backgroundColor: '#00FF00',
-          borderColor: '#00FF00',
-          borderWidth: 1
-        },
-        {
-          label: 'Expenses',
-          data: expenseData,
-          backgroundColor: '#EF4444',
-          borderColor: '#EF4444',
-          borderWidth: 1
-        },
-        {
-          label: 'Savings',
-          data: savingsData,
-          backgroundColor: '#3B82F6',
-          borderColor: '#3B82F6',
-          borderWidth: 1
-        }
-      ]
-    },
-    options: {
-      ...getChartOptions(),
-      scales: {
-        ...getChartOptions().scales,
-        x: {
-          stacked: false,
-          grid: {
-            display: false
-          }
-        },
-        y: {
-          stacked: false,
-          beginAtZero: true
-        }
-      }
-    }
-  });
-  
-  // Generate HTML table
-  let tableHTML = `
-    <table class="min-w-full divide-y divide-gray-200">
-      <thead class="bg-gray-50">
-        <tr>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Month</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Income</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Expenses</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Savings</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Net</th>
-        </tr>
-      </thead>
-      <tbody class="bg-white divide-y divide-gray-200">
-  `;
-  
-  for (let month = 0; month < 12; month++) {
-    const net = monthlyData[month].income - monthlyData[month].expense;
-    tableHTML += `
-      <tr>
-        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${months[month]}</td>
-        <td class="px-6 py-4 whitespace-nowrap text-sm text-lime">₹${monthlyData[month].income.toFixed(2)}</td>
-        <td class="px-6 py-4 whitespace-nowrap text-sm text-lime">₹${monthlyData[month].expense.toFixed(2)}</td>
-        <td class="px-6 py-4 whitespace-nowrap text-sm text-blue-500">₹${monthlyData[month].savings.toFixed(2)}</td>
-        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium ${net >= 0 ? 'text-lime' : 'text-lime'}">₹${net.toFixed(2)}</td>
-      </tr>
-    `;
-  }
-  
-  tableHTML += `
-      </tbody>
-    </table>
-  `;
-  
-  document.getElementById('monthlyReportTable').innerHTML = tableHTML;
-}
-
-function generateCategoryReport() {
-  const year = parseInt(document.getElementById('categoryReportYear').value);
-  const reportType = document.getElementById('categoryReportType').value;
-  
-  const categoryData = {};
-  
-  if (reportType === 'expense') {
-    // Process expense categories
-    records.forEach(record => {
-      if (record.type === 'expense') {
-        const recordDate = new Date(record.date);
-        if (recordDate.getFullYear() === year) {
-          // Simple categorization by first word of description
-          // In a real app, you'd want proper categories
-          const category = record.description.split(' ')[0] || 'Other';
-          categoryData[category] = (categoryData[category] || 0) + record.amount;
-        }
-      }
-    });
-  } else {
-    // Process income categories
-    records.forEach(record => {
-      if (record.type === 'income') {
-        const recordDate = new Date(record.date);
-        if (recordDate.getFullYear() === year) {
-          const category = record.description.split(' ')[0] || 'Other';
-          categoryData[category] = (categoryData[category] || 0) + record.amount;
-        }
-      }
-    });
-  }
-  
-  // Sort categories by amount
-  const sortedCategories = Object.entries(categoryData)
-    .sort((a, b) => b[1] - a[1]);
-  
-  // Prepare chart data
-  const labels = sortedCategories.map(item => item[0]);
-  const data = sortedCategories.map(item => item[1]);
-  
-  // Update chart
-  if (categoryReportChart) categoryReportChart.destroy();
-  
-  categoryReportChart = new Chart(categoryReportCtx, {
-    type: 'doughnut',
-    data: {
-      labels: labels,
-      datasets: [{
-        data: data,
-        backgroundColor: labels.map((_, i) => getCategoryColor(i)),
-        borderWidth: 1
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          position: 'right',
-          labels: {
-            boxWidth: 12,
-            padding: 10,
-            font: {
-              size: 12
-            }
-          }
-        },
-        tooltip: {
-          callbacks: {
-            label: function(context) {
-              return `${context.label}: ₹${context.raw.toFixed(2)} (${((context.raw / context.dataset.data.reduce((a, b) => a + b, 0)) * 100).toFixed(1)}%)`;
-            }
-          }
-        }
-      },
-      cutout: '70%'
-    }
-  });
-  
-  // Generate HTML table
-  let tableHTML = `
-    <table class="min-w-full divide-y divide-gray-200">
-      <thead class="bg-gray-50">
-        <tr>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Category</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Amount</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Percentage</th>
-        </tr>
-      </thead>
-      <tbody class="bg-white divide-y divide-gray-200">
-  `;
-  
-  const total = data.reduce((sum, amount) => sum + amount, 0);
-  
-  sortedCategories.forEach(([category, amount]) => {
-    const percentage = (amount / total * 100).toFixed(1);
-    tableHTML += `
-      <tr>
-        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${category}</td>
-        <td class="px-6 py-4 whitespace-nowrap text-sm ${reportType === 'expense' ? 'text-lime' : 'text-lime'}">₹${amount.toFixed(2)}</td>
-        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${percentage}%</td>
-      </tr>
-    `;
-  });
-  
-  tableHTML += `
-      </tbody>
-    </table>
-  `;
-  
-  document.getElementById('categoryReportTable').innerHTML = tableHTML;
-}
-
-function exportMonthlyReport() {
-  const year = document.getElementById('reportYear').value;
-  const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-  
-  let csv = 'Month,Income,Expenses,Savings,Net\n';
-  
-  // Get all data points from the chart
-  const incomeData = monthlyReportChart.data.datasets[0].data;
-  const expenseData = monthlyReportChart.data.datasets[1].data;
-  const savingsData = monthlyReportChart.data.datasets[2].data;
-  
-  for (let month = 0; month < 12; month++) {
-    const net = incomeData[month] - expenseData[month];
-    csv += `${months[month]},${incomeData[month].toFixed(2)},${expenseData[month].toFixed(2)},${savingsData[month].toFixed(2)},${net.toFixed(2)}\n`;
-  }
-  
-  const blob = new Blob([csv], { type: 'text/csv' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `monthly-report-${year}.csv`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-  
-  showNotification('Monthly report exported!', 'success');
-}
-
-// In your initialization code (where you call other init functions)
-initializeReports();
   </script>
 </body>
 </html>
