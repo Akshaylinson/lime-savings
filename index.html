@@ -201,9 +201,49 @@
     .bg-gray-100 {
       background-color: #333333 !important;
     }
+
+    /* Mobile transaction cards */
+    .tx-card {
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin-bottom: 8px;
+    }
+
+    /* Custom confirm modal */
+    #confirmModal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.75);
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+    }
+    #confirmModal.show { display: flex; }
+    #confirmModal .box {
+      background: #111;
+      border: 1px solid #00FF00;
+      border-radius: 14px;
+      padding: 24px;
+      width: 88%;
+      max-width: 340px;
+      text-align: center;
+    }
   </style>
 </head>
 <body class="bg-black">
+  <!-- Custom Confirm Modal (works in Android WebView) -->
+  <div id="confirmModal">
+    <div class="box">
+      <p id="confirmMsg" class="text-white text-base mb-6">Are you sure?</p>
+      <div class="flex space-x-3 justify-center">
+        <button id="confirmNo" class="px-5 py-2 rounded-lg border border-gray-600 text-gray-300">Cancel</button>
+        <button id="confirmYes" class="px-5 py-2 rounded-lg bg-red-600 text-white font-medium">Delete</button>
+      </div>
+    </div>
+  </div>
   <div class="min-h-screen">
     <!-- Header -->
     <header class="bg-black text-white shadow-md">
@@ -376,42 +416,29 @@
                 </div>
               </form>
             </div>
-            <!-- Transactions Table -->
+            <!-- Transactions List -->
             <div class="mb-8">
               <div class="flex justify-between items-center mb-4">
                 <h2 class="text-lg font-semibold text-white">Recent Transactions</h2>
-                <div class="flex space-x-2">
-                  <button class="px-3 py-1.5 text-sm bg-white border border-gray-200 hover:bg-gray-50 rounded-lg transition">
-                    <i class="fas fa-filter mr-1"></i> Filter
-                  </button>
-                  <button class="px-3 py-1.5 text-sm bg-white border border-gray-200 hover:bg-gray-50 rounded-lg transition">
-                    <i class="fas fa-download mr-1"></i> Export
-                  </button>
-                </div>
               </div>
-              
-              <div class="rounded-lg border border-gray-200 overflow-hidden">
+              <!-- Mobile cards (visible on small screens) -->
+              <div id="recordsCards" class="block md:hidden space-y-2"></div>
+              <!-- Desktop table (hidden on small screens) -->
+              <div class="hidden md:block rounded-lg border border-gray-200 overflow-hidden">
                 <div class="overflow-x-auto">
                   <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50 sticky top-0 z-10">
                       <tr>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Date</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Type</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Mode</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Category</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Description</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Amount</th>
-                        <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">Actions</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Date</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Type</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Mode</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Description</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Amount</th>
+                        <th class="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase">Del</th>
                       </tr>
                     </thead>
+                    <tbody id="recordsTable" class="bg-white divide-y divide-gray-200"></tbody>
                   </table>
-                </div>
-                <div class="overflow-y-auto" style="max-height: 320px;">
-                  <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
-                      <tbody id="recordsTable" class="bg-white divide-y divide-gray-200"></tbody>
-                    </table>
-                  </div>
                 </div>
               </div>
             </div>
@@ -717,8 +744,19 @@
       localStorage.setItem("entryFormData", JSON.stringify(formData));
     });
     
+    // Custom confirm modal (replaces browser confirm — works in Android WebView)
+    function mobileConfirm(message, onYes) {
+      const modal = document.getElementById('confirmModal');
+      document.getElementById('confirmMsg').textContent = message;
+      modal.classList.add('show');
+      document.getElementById('confirmYes').onclick = () => { modal.classList.remove('show'); onYes(); };
+      document.getElementById('confirmNo').onclick  = () => { modal.classList.remove('show'); };
+    }
+
     function updateTableAndSummary() {
-      tableEl.innerHTML = "";
+      const cardsEl = document.getElementById('recordsCards');
+      tableEl.innerHTML = '';
+      if (cardsEl) cardsEl.innerHTML = '';
       let income = 0, expense = 0, cashBalance = 0, onlineBalance = 0;
 
       // Tag each record with its original index before sorting
@@ -775,16 +813,37 @@
         const row = document.createElement('tr');
         row.className = 'hover:bg-gray-900';
         row.innerHTML = `
-          <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">${entry.date}</td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm">
-            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${badgeClass}">${badgeLabel}</span>
+          <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-white">${entry.date}</td>
+          <td class="px-4 py-3 whitespace-nowrap text-sm">
+            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${badgeClass}">${badgeLabel}</span>
           </td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm">${modeBadge}</td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm">${categoryCell}</td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">${entry.description}</td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm font-medium ${amountColor}">${sign}₹${entry.amount.toFixed(2)}</td>
-          <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">${deleteBtn}</td>`;
+          <td class="px-4 py-3 whitespace-nowrap text-sm">${modeBadge}</td>
+          <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-300">${entry.description}</td>
+          <td class="px-4 py-3 whitespace-nowrap text-sm font-medium ${amountColor}">${sign}₹${(parseFloat(entry.amount)||0).toFixed(2)}</td>
+          <td class="px-4 py-3 whitespace-nowrap text-right text-sm font-medium">${deleteBtn}</td>`;
         tableEl.appendChild(row);
+
+        // Mobile card
+        if (cardsEl) {
+          const card = document.createElement('div');
+          card.className = 'tx-card';
+          card.innerHTML = `
+            <div class="flex justify-between items-start">
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 flex-wrap mb-1">
+                  <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${badgeClass}">${badgeLabel}</span>
+                  ${modeBadge}
+                </div>
+                <p class="text-white text-sm font-medium truncate">${entry.description}</p>
+                <p class="text-gray-500 text-xs mt-0.5">${entry.date}${isSaving ? ' &bull; ' + (entry.category||'') : ''}</p>
+              </div>
+              <div class="flex items-center gap-3 ml-3 shrink-0">
+                <span class="text-sm font-bold ${amountColor}">${sign}₹${(parseFloat(entry.amount)||0).toFixed(2)}</span>
+                ${deleteBtn}
+              </div>
+            </div>`;
+          cardsEl.appendChild(card);
+        }
       });
 
       // Tally income & expense
@@ -907,13 +966,13 @@
     });
     
     function deleteRecord(index) {
-      if (confirm('Are you sure you want to delete this transaction?')) {
+      mobileConfirm('Delete this transaction?', () => {
         records.splice(index, 1);
         localStorage.setItem("records", JSON.stringify(records));
         updateTableAndSummary();
         gsSync();
-        showNotification('Transaction deleted successfully!', 'success');
-      }
+        showNotification('Transaction deleted!', 'success');
+      });
     }
     
     function groupByMonth(data) {
@@ -1085,14 +1144,14 @@
     }
     
     function deleteSaving(globalIndex) {
-      if (confirm('Are you sure you want to delete this savings entry?')) {
+      mobileConfirm('Delete this savings entry?', () => {
         savings.splice(globalIndex, 1);
         localStorage.setItem("savings", JSON.stringify(savings));
         renderSavingsSummary();
         updateTableAndSummary();
         gsSync();
         showNotification('Savings entry deleted!', 'success');
-      }
+      });
     }
     
     function renderCategoriesInDropdown() {
@@ -1142,7 +1201,7 @@
     }
     
     function deleteCategory(index) {
-      if (confirm('Are you sure? This will also delete all related savings entries.')) {
+      mobileConfirm('Delete this category and all its savings?', () => {
         const name = categories[index].name;
         categories.splice(index, 1);
         savings = savings.filter(e => e.category !== name);
@@ -1154,7 +1213,7 @@
         updateTableAndSummary();
         gsSync();
         showNotification('Category deleted!', 'success');
-      }
+      });
     }
     
     function groupByMonthCategory() {
