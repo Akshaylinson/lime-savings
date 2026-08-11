@@ -252,7 +252,7 @@
           <!-- Income/Expense Tab -->
           <div id="expenseTab" class="tab-content active">
             <!-- Summary Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
               <div class="bg-white border border-gray-200 rounded-xl p-6 card-shadow">
                 <div class="flex items-center justify-between">
                   <div>
@@ -304,11 +304,37 @@
                   </div>
                 </div>
               </div>
+
+              <div class="bg-black text-white rounded-xl p-6 card-shadow border border-green-400">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <p class="text-sm font-medium text-green-400">Cash in Hand</p>
+                    <h3 class="text-2xl font-bold text-white mt-1">₹<span id="cashBalance">0.00</span></h3>
+                    <p class="text-xs text-green-400 mt-2"><i class="fas fa-money-bill-wave mr-1"></i> Liquid cash</p>
+                  </div>
+                  <div class="p-3 rounded-lg border border-green-400">
+                    <i class="fas fa-money-bill-wave text-green-400 text-xl"></i>
+                  </div>
+                </div>
+              </div>
+
+              <div class="bg-black text-white rounded-xl p-6 card-shadow border border-blue-400">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <p class="text-sm font-medium text-blue-400">Online / Account</p>
+                    <h3 class="text-2xl font-bold text-white mt-1">₹<span id="onlineBalance">0.00</span></h3>
+                    <p class="text-xs text-blue-400 mt-2"><i class="fas fa-credit-card mr-1"></i> Digital balance</p>
+                  </div>
+                  <div class="p-3 rounded-lg border border-blue-400">
+                    <i class="fas fa-credit-card text-blue-400 text-xl"></i>
+                  </div>
+                </div>
+              </div>
             </div>
             <!-- Add Transaction Form -->
             <div class="bg-white rounded-xl p-6 mb-8 card-shadow border border-gray-200">
               <h2 class="text-lg font-semibold text-white mb-4">Add New Transaction</h2>
-              <form id="entryForm" class="grid grid-cols-1 md:grid-cols-5 gap-4">
+              <form id="entryForm" class="grid grid-cols-1 md:grid-cols-6 gap-4">
                 <div>
                   <label for="date" class="block text-sm font-medium text-gray-700 mb-1">Date</label>
                   <input type="date" id="date" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lime focus:border-lime">
@@ -319,6 +345,14 @@
                   <select id="type" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lime focus:border-lime">
                     <option value="income">Income</option>
                     <option value="expense">Expense</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label for="paymentMode" class="block text-sm font-medium text-gray-700 mb-1">Mode</label>
+                  <select id="paymentMode" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lime focus:border-lime">
+                    <option value="cash">💵 Cash</option>
+                    <option value="online">🌐 Online</option>
                   </select>
                 </div>
                 
@@ -360,6 +394,7 @@
                       <tr>
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Date</th>
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Type</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Mode</th>
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Category</th>
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Description</th>
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Amount</th>
@@ -663,6 +698,7 @@
     const savedFormData = JSON.parse(localStorage.getItem("entryFormData")) || {};
     document.getElementById("date").value = savedFormData.date || "";
     document.getElementById("type").value = savedFormData.type || "income";
+    document.getElementById("paymentMode").value = savedFormData.paymentMode || "cash";
     document.getElementById("amount").value = savedFormData.amount || "";
     document.getElementById("description").value = savedFormData.description || "";
     
@@ -671,6 +707,7 @@
       const formData = {
         date: document.getElementById("date").value,
         type: document.getElementById("type").value,
+        paymentMode: document.getElementById("paymentMode").value,
         amount: document.getElementById("amount").value,
         description: document.getElementById("description").value
       };
@@ -679,7 +716,7 @@
     
     function updateTableAndSummary() {
       tableEl.innerHTML = "";
-      let income = 0, expense = 0;
+      let income = 0, expense = 0, cashBalance = 0, onlineBalance = 0;
 
       // Tag each record with its original index before sorting
       const taggedRecords = records.map((rec, i) => ({ ...rec, _idx: i, _source: 'record' }));
@@ -713,6 +750,15 @@
         const amountColor = (isIncome || (isSaving && !isDeposit)) ? 'text-lime' : 'text-red-500';
         const sign = (isIncome || (isSaving && !isDeposit)) ? '+' : '-';
 
+        // Mode badge (only for records, not savings)
+        let modeBadge = '';
+        if (!isSaving) {
+          const mode = entry.paymentMode || 'cash';
+          modeBadge = mode === 'cash'
+            ? `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-900 text-green-300">💵 Cash</span>`
+            : `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-900 text-blue-300">🌐 Online</span>`;
+        }
+
         // Category column
         const categoryCell = isSaving
           ? `<span class="text-xs text-blue-400 font-medium">${entry.category || '—'}</span>`
@@ -730,6 +776,7 @@
           <td class="px-6 py-4 whitespace-nowrap text-sm">
             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${badgeClass}">${badgeLabel}</span>
           </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm">${modeBadge}</td>
           <td class="px-6 py-4 whitespace-nowrap text-sm">${categoryCell}</td>
           <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">${entry.description}</td>
           <td class="px-6 py-4 whitespace-nowrap text-sm font-medium ${amountColor}">${sign}₹${entry.amount.toFixed(2)}</td>
@@ -738,7 +785,16 @@
       });
 
       // Tally income & expense
-      records.forEach(r => r.type === 'income' ? income += r.amount : expense += r.amount);
+      records.forEach(r => {
+        const mode = r.paymentMode || 'cash';
+        if (r.type === 'income') {
+          income += r.amount;
+          mode === 'cash' ? cashBalance += r.amount : onlineBalance += r.amount;
+        } else {
+          expense += r.amount;
+          mode === 'cash' ? cashBalance -= r.amount : onlineBalance -= r.amount;
+        }
+      });
       savings.forEach(s => s.type === 'deposit' ? expense += s.amount : expense -= s.amount);
 
       const balance = income - expense;
@@ -746,6 +802,8 @@
       expenseEl.textContent = expense.toFixed(2);
       balanceEl.textContent = balance.toFixed(2);
       availableToSpendEl.textContent = (balance * 0.3).toFixed(2);
+      document.getElementById('cashBalance').textContent = cashBalance.toFixed(2);
+      document.getElementById('onlineBalance').textContent = onlineBalance.toFixed(2);
       updateIncomeExpenseChart();
       updateSpendingCategoryChart();
 
@@ -832,6 +890,7 @@
       const entry = {
         date: document.getElementById("date").value,
         type: document.getElementById("type").value,
+        paymentMode: document.getElementById("paymentMode").value,
         amount: parseFloat(document.getElementById("amount").value),
         description: document.getElementById("description").value
       };
